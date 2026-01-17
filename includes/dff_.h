@@ -43,10 +43,6 @@ static inline void init_dff(dff_ *dff) {
     *dff = (dff_){d_latch, d_latch, 0, 0};
 }
 
-static inline void init_dff_(dff_ *dff) {
-    *dff = (dff_){d_latch, d_latch, 0, 0};
-}
-
 static inline void init_dff_deh(dff_b_ *_dff_b) {
     *_dff_b = (dff_b_){{d_latch, d_latch, 0, 0}, 0};
 }

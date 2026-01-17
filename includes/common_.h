@@ -23,7 +23,6 @@ const static word NOP = {
 };
 const static word WORD_ZERO = {0};
 
-
 static inline
 uint8_t u8_from_byte(const byte b) {
     uint8_t v = 0;
@@ -41,7 +40,6 @@ void connect(const word src, word dest) {
         dest[i] = src[i];
     }
 }
-
 
 static inline
 uint32_t u32_from_word(const word b) {
@@ -62,7 +60,6 @@ bit word_is_zero(const word b) {
     }
     return !mask;
 }
-
 
 // 逻辑 bit n (31..0) -> 存储下标 index = 31 - n
 #define INST_BIT(instr, n)  ((instr)[WORD_SIZE - 1 - (n)])

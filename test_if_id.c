@@ -54,7 +54,7 @@ static inline If_id_pc_ops make_pcops_branch(uint32_t target) {
 // ------------------------------------------------------------
 // 1) 顺序取指 + PC+4
 // ------------------------------------------------------------
-static void test_plus4_basic(void) {
+static int test_plus4_basic(void) {
     printf("\n=== test_plus4_basic ===\n");
 
     Im_t im;

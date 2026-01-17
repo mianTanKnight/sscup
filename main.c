@@ -10,6 +10,7 @@
 #include "includes/id_ex_.h"
 #include "includes/isa_.h"
 #include "includes/decoder_.h"
+#include "includes/dm_.h"
 
 /**
  * SCCPU — Simple Circuit CPU (用 C 写的“电路风格 CPU”)
@@ -269,16 +270,16 @@ void mock_reg32_q(Reg32_ *r, uint32_t val) {
     }
 }
 
-// int main() {
-    // word ret_word = {0};
-    // word_lshift2(WORD_4_BYTE,ret_word);
-    // L_SHIFT_N(WORD_4_BYTE, 2, ret);
-    // printf("xx");
-    // bit x = 0;
-    // IS_ZERO(WORD_ONE, &x);
-    // printf("%d", x);
-    // logic_test();
-    // test_add_ops();
-    // test_sub_ops();
-    // test_slt_ops();
-// }
+int main() {
+    Dm_ dm;
+    init_dm(&dm);
+
+    bit x[] = {1,1,1,1,1,1,1,1};
+    // dm.write(&dm,WORD_ZERO,1,x,0);
+    dm.write(&dm,WORD_ZERO,1,x,1);
+
+    bit z[8] = {0};
+    dm.read(&dm,WORD_ZERO,1,z);
+
+    printf("test");
+}

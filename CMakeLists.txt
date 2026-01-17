@@ -23,4 +23,5 @@ add_executable(sccpu main.c
         test_ex_mem.c
         includes/common_test.h
         test_parallelism_branch_feedback.c
+        includes/dm_.h
 )

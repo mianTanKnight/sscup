@@ -243,11 +243,11 @@ static int test_parallelism_branch_feedback(void) {
     return 0;
 }
 
-int main(void) {
-    int rc = 0;
-    rc |= test_parallelism_branch_feedback();
-    if (rc == 0) {
-        printf("ALL PARALLELISM TESTS PASSED ✅\n");
-    }
-    return rc;
-}
+// int main(void) {
+//     int rc = 0;
+//     rc |= test_parallelism_branch_feedback();
+//     if (rc == 0) {
+//         printf("ALL PARALLELISM TESTS PASSED ✅\n");
+//     }
+//     return rc;
+// }

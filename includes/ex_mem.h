@@ -36,8 +36,10 @@ init_ex_eme_regs(Ex_mem_regs *regs) {
  *  hazard 是 ex -> if 的回通电路
  *  If_id_pc_ops 在二段式的第一段(低电平)时被更新 (如果需要)
  *  If_id_pc_ops 中使用的直连式 而非 DFF_
- *  step2
- *  if_id_step(ops);
+ *
+ *  在调用 hazard 时
+ *  ops, pc_src, If_id_write.if_id_flush,id_ex_write->id_ex_flush
+ *  应该被清0
  *
  */
 static inline void
