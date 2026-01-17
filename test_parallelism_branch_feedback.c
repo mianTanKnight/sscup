@@ -52,6 +52,7 @@ typedef struct cpu_t {
 
     If_id_pc_ops pc_ops; // wire bundle: pc_src + branch_target
     If_id_write ifid_write; // pc_write/if_id_write/if_id_flush
+    Id_ex_write id_ex_write;
 
     Reg324file_ rf;
 } Cpu_t;
@@ -105,7 +106,6 @@ static inline uint32_t enc_addi(uint8_t rt, uint8_t rs, int16_t imm) {
            | ((uint16_t) imm);
 }
 
-
 static inline
 void init_cpu(Cpu_t *c) {
     init_pc32(&c->pc);
@@ -115,17 +115,25 @@ void init_cpu(Cpu_t *c) {
     init_reg32file(&c->rf);
     memset(&c->pc_ops, 0, sizeof(If_id_pc_ops));
     memset(&c->ifid_write, 0, sizeof(If_id_write));
+    memset(&c->id_ex_write, 0, sizeof(Id_ex_write));
 }
 
-// hazard：把 EX 的 pc_src/branch_target wire “立即”连接到 IF 的 pc_ops
-static inline void hazard_comb(If_id_pc_ops *ops, const pc_ops pc_src, const word branch_target) {
-    ops->pc_ops_[0] = pc_src[0];
-    ops->pc_ops_[1] = pc_src[1];
-    // connect wire
+static inline void hazard_comb_c(Cpu_t *c, const pc_ops pc_src, const word branch_target) {
+    c->pc_ops.pc_ops_[0] = pc_src[0];
+    c->pc_ops.pc_ops_[1] = pc_src[1];
+    // 把 EX 的 pc_src/branch_target wire “立即”连接到 IF 的 pc_ops
+    // connect wire if_id ops line
     for (int i = 0; i < WORD_SIZE; ++i) {
-        ops->branch_target_wire[i] = branch_target[i];
+        c->pc_ops.branch_target_wire[i] = branch_target[i];
     }
+    // c->ifid_write 看起来是被"储存"了
+    // 因为 branch_taken 是被实时计算出来的 也就是说 在 step2 阶段 branch_taken 也是会被计算的
+    // c->ifid_write.if_id_flush = branch_taken; 更像是连接
+    bit branch_taken = AND(pc_src[0], NOT(pc_src[1]));
+    c->ifid_write.if_id_flush = branch_taken;
+    c->id_ex_write.id_ex_flush = branch_taken;
 }
+
 
 static inline void cpu_phase(Cpu_t *c, const Im_t *im, bit clk) {
     bit overflow = 0;
@@ -134,42 +142,33 @@ static inline void cpu_phase(Cpu_t *c, const Im_t *im, bit clk) {
     word branch_target = {0};
 
     // --- Hazard Control Wires ---
-    bit branch_taken = 0;
-    bit if_id_flush = 0;
-    bit id_ex_flush = 0;
     bit pc_write = 1;
     bit if_id_write = 1;
     bit id_ex_write = 1;
+    // init
+    c->pc_ops.pc_ops_[0] = 0;
+    c->pc_ops.pc_ops_[1] = 0;
+    c->ifid_write.if_id_flush = 0;
+    c->id_ex_write.id_ex_flush = 0;
 
-    // --- 1. EX Stage Logic ---
     // Reads from ID/EX.Q
-    print_pipeline_state("debug1",c);
     ex_mem_regs_step(&c->idex, &c->exmem, pc_src, branch_target, 0, &overflow, clk);
-
-    // --- 2. Hazard Logic (The Glue) ---
-    branch_taken = AND(pc_src[0],NOT(pc_src[1]));
-    if_id_flush = branch_taken;
-    printf("    [Hazard] branch_taken wire = %d\n", branch_taken);
-    printf("    [Hazard] if_id_flush wire = %d\n", if_id_flush);
-
-    // --- 3. ID Stage Logic ---
-    // Reads from IF/ID.Q
-    id_ex_regs_step(&c->idex, &c->ifid, &c->rf, id_ex_write, id_ex_flush, clk);
-
-    // --- 4. IF Stage Logic ---
-    // Uses wires from Hazard logic
-    hazard_comb(&c->pc_ops,pc_src,branch_target);
+    // hazard
+    hazard_comb_c(c, pc_src, branch_target);
 
     c->ifid_write.pc_write = pc_write;
     c->ifid_write.if_id_write = if_id_write;
-    c->ifid_write.if_id_flush = if_id_flush;
-
     if_id_regs_step(&c->ifid, im, &c->pc, &c->pc_ops, &c->ifid_write, &overflow, clk);
+
+    c->id_ex_write.id_ex_write = id_ex_write;
+    // // Reads from IF/ID.Q
+    id_ex_regs_step(&c->idex, &c->ifid, &c->rf, &c->id_ex_write, clk);
 }
 
 static inline void cpu_cycle(Cpu_t *c, const Im_t *im) {
     printf("  >>> CLK=0: Combinational Logic Evaluation <<<\n");
     cpu_phase(c, im, 0);
+    printf("\n debug2 ->%X \n", reg32_read_u32(&c->pc.reg32));
     printf("  >>> CLK=1: Sequential Logic (Register) Update <<<\n");
     cpu_phase(c, im, 1);
 }
@@ -226,6 +225,7 @@ static int test_parallelism_branch_feedback(void) {
 
     // === Cycle 1: Fetch Instr A, Decode BEQ ===
     printf("\n>>> Cycle 1 Start <<<\n");
+    printf("\n debug1 ->%X \n", reg32_read_u32(&cpu.pc.reg32));
     cpu_cycle(&cpu, &im);
     print_pipeline_state("End of Cycle 1", &cpu);
     ASSERT_EQ_U32("cycle1 PC==8", reg32_read_u32(&cpu.pc.reg32), 8); // <<-- 期望是 8！

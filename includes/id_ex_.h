@@ -41,6 +41,12 @@ typedef struct id_ex_regs {
 } Id_ex_regs;
 
 
+typedef struct id_ex_write {
+    bit id_ex_write;
+    bit id_ex_flush;
+} Id_ex_write;
+
+
 static inline void
 init_id_ex_regs(Id_ex_regs *regs) {
     init_reg32(&regs->decode_signals);
@@ -55,8 +61,10 @@ init_id_ex_regs(Id_ex_regs *regs) {
 
 
 static inline void
-id_ex_regs_step(Id_ex_regs *id_ex_regs, const If_id_regs *if_id_regs, const Reg324file_ *reg324_file, bit id_ex_write,
-                bit id_ex_flush,
+id_ex_regs_step(Id_ex_regs *id_ex_regs,
+                const If_id_regs *if_id_regs,
+                const Reg324file_ *reg324_file,
+                const Id_ex_write *id_ex_write,
                 const bit clk) {
     // read data of if_id_regs
     word instr = {0};
@@ -111,14 +119,14 @@ id_ex_regs_step(Id_ex_regs *id_ex_regs, const If_id_regs *if_id_regs, const Reg3
     word_mux_2_1(r1v, r3v, rs_ops[0], tmp_mux_1);
     word_mux_2_1(tmp_mux_0, tmp_mux_1, rs_ops[1], rs);
 
-    word_mux_2_1(rs, WORD_ZERO, id_ex_flush, rs);
+    word_mux_2_1(rs, WORD_ZERO, id_ex_write->id_ex_flush, rs);
 
     // RT
     word_mux_2_1(r0v, r2v, rt_ops[0], tmp_mux_0);
     word_mux_2_1(r1v, r3v, rt_ops[0], tmp_mux_1);
     word_mux_2_1(tmp_mux_0, tmp_mux_1, rt_ops[1], rt);
 
-    word_mux_2_1(rt, WORD_ZERO, id_ex_flush, rt);
+    word_mux_2_1(rt, WORD_ZERO, id_ex_write->id_ex_flush, rt);
 
     // IMM-EXT
     // [31:26]  [25:21]  [20:16]  [15:0]
@@ -126,47 +134,47 @@ id_ex_regs_step(Id_ex_regs *id_ex_regs, const If_id_regs *if_id_regs, const Reg3
     //  6bits     5bits    5bits     16bits
     // Ext-Fill  id_ex_flush is 1 set 0
     for (int i = 31; i > 15; i--)
-        imm_ext[INST_WORD(i)] = AND(INST_BIT(instr, 15), NOT(id_ex_flush));
+        imm_ext[INST_WORD(i)] = AND(INST_BIT(instr, 15), NOT(id_ex_write->id_ex_flush));
     for (int i = 15; i >= 0; i--)
-        imm_ext[INST_WORD(i)] = AND(INST_BIT(instr, i), NOT(id_ex_flush));
+        imm_ext[INST_WORD(i)] = AND(INST_BIT(instr, i), NOT(id_ex_write->id_ex_flush));
 
 
     // index
-    rs_index[INST_WORD(0)] = AND(rs_ops[1], NOT(id_ex_flush));
-    rs_index[INST_WORD(1)] = AND(rs_ops[0], NOT(id_ex_flush));
+    rs_index[INST_WORD(0)] = AND(rs_ops[1], NOT(id_ex_write->id_ex_flush));
+    rs_index[INST_WORD(1)] = AND(rs_ops[0], NOT(id_ex_write->id_ex_flush));
 
-    rt_index[INST_WORD(0)] = AND(rt_ops[1], NOT(id_ex_flush));
-    rt_index[INST_WORD(1)] = AND(rt_ops[0], NOT(id_ex_flush));
+    rt_index[INST_WORD(0)] = AND(rt_ops[1], NOT(id_ex_write->id_ex_flush));
+    rt_index[INST_WORD(1)] = AND(rt_ops[0], NOT(id_ex_write->id_ex_flush));
 
-    rd_index[INST_WORD(0)] = AND(rd_ops[1], NOT(id_ex_flush));
-    rd_index[INST_WORD(1)] = AND(rd_ops[0], NOT(id_ex_flush));
+    rd_index[INST_WORD(0)] = AND(rd_ops[1], NOT(id_ex_write->id_ex_flush));
+    rd_index[INST_WORD(1)] = AND(rd_ops[0], NOT(id_ex_write->id_ex_flush));
 
     // CALL_STEP
     word out = {0};
 
     //decode_signals
     word decode_signals_word = {0};
-    decode_signals_word[INST_WORD(31)] = AND(signals.reg_dst, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(30)] = AND(signals.alu_src, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(29)] = AND(signals.data_src_to_reg, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(28)] = AND(signals.reg_write, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(27)] = AND(signals.mem_read, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(26)] = AND(signals.mem_write, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(25)] = AND(signals.branch, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(24)] = AND(signals.jump, NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(23)] = AND(signals.ops_[0], NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(22)] = AND(signals.ops_[1], NOT(id_ex_flush));
-    decode_signals_word[INST_WORD(21)] = AND(signals.ops_[2], NOT(id_ex_flush));
+    decode_signals_word[INST_WORD(31)] = AND(signals.reg_dst, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(30)] = AND(signals.alu_src, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(29)] = AND(signals.data_src_to_reg, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(28)] = AND(signals.reg_write, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(27)] = AND(signals.mem_read, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(26)] = AND(signals.mem_write, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(25)] = AND(signals.branch, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(24)] = AND(signals.jump, NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(23)] = AND(signals.ops_[0], NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(22)] = AND(signals.ops_[1], NOT(id_ex_write->id_ex_flush));
+    decode_signals_word[INST_WORD(21)] = AND(signals.ops_[2], NOT(id_ex_write->id_ex_flush));
 
-    reg32_step(&id_ex_regs->decode_signals, OR(id_ex_write, id_ex_flush), decode_signals_word, out, clk);
-    reg32_step(&id_ex_regs->read_data1, OR(id_ex_write, id_ex_flush), rs, out, clk);
-    reg32_step(&id_ex_regs->read_data2, OR(id_ex_write, id_ex_flush), rt, out, clk);
-    reg32_step(&id_ex_regs->imm_ext, OR(id_ex_write, id_ex_flush), imm_ext, out, clk);
-    reg32_step(&id_ex_regs->rs_idx, OR(id_ex_write, id_ex_flush), rs_index, out, clk);
-    reg32_step(&id_ex_regs->rt_idx, OR(id_ex_write, id_ex_flush), rt_index, out, clk);
-    reg32_step(&id_ex_regs->rd_idx, OR(id_ex_write, id_ex_flush), rd_index, out, clk);
+    reg32_step(&id_ex_regs->decode_signals, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), decode_signals_word, out, clk);
+    reg32_step(&id_ex_regs->read_data1, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), rs, out, clk);
+    reg32_step(&id_ex_regs->read_data2, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), rt, out, clk);
+    reg32_step(&id_ex_regs->imm_ext, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), imm_ext, out, clk);
+    reg32_step(&id_ex_regs->rs_idx, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), rs_index, out, clk);
+    reg32_step(&id_ex_regs->rt_idx, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), rt_index, out, clk);
+    reg32_step(&id_ex_regs->rd_idx, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), rd_index, out, clk);
 
-    reg32_step(&id_ex_regs->pc_plus4, OR(id_ex_write, id_ex_flush), pc_plus4, out, clk);
+    reg32_step(&id_ex_regs->pc_plus4, OR(id_ex_write->id_ex_write, id_ex_write->id_ex_flush), pc_plus4, out, clk);
 }
 
 /*********************************************Macro***************************************************************/

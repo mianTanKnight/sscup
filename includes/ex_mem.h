@@ -36,16 +36,6 @@ init_ex_eme_regs(Ex_mem_regs *regs) {
  *  hazard 是 ex -> if 的回通电路
  *  If_id_pc_ops 在二段式的第一段(低电平)时被更新 (如果需要)
  *  If_id_pc_ops 中使用的直连式 而非 DFF_
- *  Use like ->
- *  If_id_pc_ops ops = init;
- *  step1:
- *  if_id_step(ops);
- *  ...
- *  const pc_ops pc_src = init;
- *  word branch_target = init;
- *  ex_mem_step(pc_src,branch_target)
- *  hazard(ops,pc_src,branch_target)
- *
  *  step2
  *  if_id_step(ops);
  *
@@ -53,11 +43,20 @@ init_ex_eme_regs(Ex_mem_regs *regs) {
 static inline void
 hazard(If_id_pc_ops *ops,
        const pc_ops pc_src, // The head pointer of the array
-       word branch_target // The head pointer of the array
+       word branch_target, // The head pointer of the array
+       If_id_write* if_id_write,
+       Id_ex_write* id_ex_write
 ) {
     ops->pc_ops_[0] = pc_src[0];
     ops->pc_ops_[1] = pc_src[1];
     connect(branch_target, ops->branch_target_wire);
+    // ifid_write 看起来是被"储存"了
+    // 因为 branch_taken 是被实时计算出来的 也就是说 在 step2 阶段 branch_taken 也是会被计算的
+    // c->ifid_write.if_id_flush = branch_taken; 更像是连接
+    bit branch_taken = AND(pc_src[0], NOT(pc_src[1]));
+    if_id_write->if_id_flush = branch_taken;
+    id_ex_write->id_ex_flush = branch_taken;
+
 }
 
 

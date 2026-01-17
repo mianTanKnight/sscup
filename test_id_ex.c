@@ -136,10 +136,11 @@ static inline void idex_tick(
     bit id_ex_write,
     bit id_ex_flush
 ) {
+    Id_ex_write write = {id_ex_write, id_ex_flush};
     // clk=0
-    id_ex_regs_step(idex, ifid, rf, id_ex_write, id_ex_flush, 0);
+    id_ex_regs_step(idex, ifid, rf, &write, 0);
     // clk=1
-    id_ex_regs_step(idex, ifid, rf, id_ex_write, id_ex_flush, 1);
+    id_ex_regs_step(idex, ifid, rf, &write, 1);
 }
 
 // -------------------------
