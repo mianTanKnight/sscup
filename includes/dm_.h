@@ -3,93 +3,64 @@
 //
 #ifndef SCCPU_DM__H
 #define SCCPU_DM__H
-#include <unistd.h>
-#include <bits/posix2_lim.h>
-
-#include "dff_.h"
 #include "stdint.h"
-#include "stddef.h"
-//  DM 是什么 ?
-//  是 CPU Cache 一块储存单元阵列
-//  DM 需要做什么?
-//  读写
-//  怎么读?
-//  以 byte 为单位 ->  Addr = 0x00000004
-//  Addr=4 意味着第 4 个字节。
-//  转换公式： Index = Addr / 4。
-//  Addr = 0 -> Index = 0
-//  Addr = 4 -> Index = 1
-//  Addr = 8 -> Index = 2
-// DM 模块允许使用 C 语法
-#define DEFAULT_SIZE  1024 * 4
 
-// one byte
-typedef struct dm_byte {
-    dff_b_ bs[8];
-} Dm_byte;
-
+//dm 是属于内存模块,项目中的内存模块都应该以简单和实用实现,允许使用C语法和硬件黑盒性
+//dm 的读写标准, dm的输出与输入是以32bit单位为标准的
+#define DEFAULT_SIZE  (1024 * 4)
+#define GET_BIT_UINT8(x,i) ((bit)((((uint8_t)(x)) >> (i)) & 1u))
 typedef struct dm_ Dm_;
 
-typedef void (*read_fn)(const Dm_ *dm, word addr, size_t size, bit *ret);
+// word is array type
+typedef void (*dm_read_fn)(const Dm_ *dm, word address, word ret);
 
-typedef void (*write_fn)(const Dm_ *dm, word addr, size_t size, const bit *input, const bit clk);
+typedef void (*dm_write_fn)(Dm_ *dm, word address, const word data, const word byte_enable_mask, const bit we,
+                            const bit clk);
 
 struct dm_ {
-    Dm_byte d[DEFAULT_SIZE]; // 4KB
-    read_fn read;
-    write_fn write;
+    uint8_t memory[DEFAULT_SIZE]; // 4KB
+    dm_read_fn m_read;
+    dm_write_fn m_write;
 };
 
-/**
- * addr -> 从那里开始读
- * size -> 读多少字节
- * ret -> 外部提供的容器 不做安全检查
- */
 static inline
-void read_(const Dm_ *dm,
-           word addr,
-           size_t size,
-           bit *ret) {
-    const uint32_t addr_32 = u32_from_word(addr);
-    size = (addr_32 + size >= DEFAULT_SIZE) ? DEFAULT_SIZE - size - 1 : size;
+void dm_read(const Dm_ *dm, word address, word ret) {
+    uint32_t idx = u32_from_word(address);
+    if (idx >= DEFAULT_SIZE) return;
+    const size_t len = (idx + 4 >= DEFAULT_SIZE) ? (DEFAULT_SIZE - 1 - idx) : 4;
     size_t s = 0;
-    for (size_t i = 0; i < size; i++) {
-        Dm_byte byte = dm->d[addr_32 + i];
-        for (size_t j = 0; j < 8; j++) {
-            ret[s++] = byte.bs[j].dff.Q;
-        }
-    }
-}
-
-/**
- * 时序写入
- * addr -> 从那里开始写, 不做写入安全检查
- * size -> 写多少
- * input -> bit级别的输入 不做安全,数据,长度检查
- * clk  -> 二段式时序支持
- */
-static inline
-void write_(const Dm_ *dm, word addr, size_t size, const bit *input, const bit clk) {
-    const uint32_t addr_32 = u32_from_word(addr);
-    size = (addr_32 + size >= DEFAULT_SIZE) ? DEFAULT_SIZE - size - 1 : size;
-    size_t s = 0;
-    for (size_t i = 0; i < size; i++) {
-        printf("index %lu\n", addr_32 + i);
-        Dm_byte *byte = (Dm_byte *) &dm->d[addr_32 + i];
-        for (size_t j = 0; j < 8; j++) {
-            dff_deh_step(&byte->bs[j], clk, input[s++]);
+    for (size_t i = 0; i < len; i++) {
+        uint8_t u = dm->memory[idx + i];
+        for (int j = 7; j >= 0; j--) {
+            ret[s++] = GET_BIT_UINT8(u, j);
         }
     }
 }
 
 static inline
-void init_dm(Dm_ *dm) {
-    for (size_t i = 0; i < DEFAULT_SIZE; i++) {
-        for (size_t j = 0; j < 8; j++)
-            init_dff_deh(&dm->d[i].bs[j]);
+void dm_write(Dm_ *dm, word address, const word data, const word byte_enable_mask, const bit we,
+              const bit clk) {
+    if (we & clk) {
+        uint32_t idx = u32_from_word(address);
+        if (idx >= DEFAULT_SIZE) return;
+        word v = {0};
+        for (size_t i = 0; i < WORD_SIZE; i++) {
+            v[i] = data[i] & byte_enable_mask[i];
+        }
+        uint8_t d_4int8[4] = {0};
+        u32_from_4byte(v, d_4int8);
+        const size_t len = (idx + 4 >= DEFAULT_SIZE) ? (DEFAULT_SIZE - 1 - idx) : 4;
+        for (size_t i = 0; i < len; i++) {
+            dm->memory[idx + i] = d_4int8[i];
+        }
     }
-    dm->read = read_;
-    dm->write = write_;
+}
+
+static inline
+void init_dm_(Dm_ *dm) {
+    memset(dm->memory, 0, DEFAULT_SIZE);
+    dm->m_read = dm_read;
+    dm->m_write = dm_write;
 }
 
 

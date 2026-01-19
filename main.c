@@ -272,14 +272,12 @@ void mock_reg32_q(Reg32_ *r, uint32_t val) {
 
 int main() {
     Dm_ dm;
-    init_dm(&dm);
+    init_dm_(&dm);
+    word address = {0};
+    dm.m_write(&dm, address, WORD_4_BYTE, ALL1, 1, 1);
+    word ret = {0};
+    dm.m_read(&dm, address, ret);
 
-    bit x[] = {1,1,1,1,1,1,1,1};
-    // dm.write(&dm,WORD_ZERO,1,x,0);
-    dm.write(&dm,WORD_ZERO,1,x,1);
-
-    bit z[8] = {0};
-    dm.read(&dm,WORD_ZERO,1,z);
 
     printf("test");
 }

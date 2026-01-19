@@ -21,6 +21,9 @@ const static word WORD_ONE = {
 const static word NOP = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
+const static word ALL1 = {
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+};
 const static word WORD_ZERO = {0};
 
 static inline
@@ -33,6 +36,21 @@ uint8_t u8_from_byte(const byte b) {
     }
     return v;
 }
+
+
+static inline
+void u32_from_4byte(const word w, uint8_t *ret) {
+    for (int i = 0; i < 4; i++) {
+        int v = 0;
+        for (int j = 0; j < BYTE_SIZE; j++) {
+            if (w[i * BYTE_SIZE + j]) {
+                v |= (uint8_t) (1u << (BYTE_SIZE - 1 - j));
+            }
+        }
+        ret[i] = v;
+    }
+}
+
 
 static inline
 void connect(const word src, word dest) {
