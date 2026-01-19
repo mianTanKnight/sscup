@@ -270,14 +270,32 @@ void mock_reg32_q(Reg32_ *r, uint32_t val) {
     }
 }
 
-// int main() {
-//     Dm_ dm;
-//     init_dm_(&dm);
-//     word address = {0};
-//     dm.m_write(&dm, address, WORD_4_BYTE, ALL1, 1, 1);
-//     word ret = {0};
-//     dm.m_read(&dm, address, ret);
-//
-//
-//     printf("test");
-// }
+
+#define  ASSERT_EQ_WORD(name, w, w1)\
+do {\
+ for (int i = 0; i < 32; i++) { \
+        if((w)[i] != (w1)[i]){\
+           printf("[ERROR] File: %s, Line: %d \n",__FILE__,__LINE__);\
+           printf("[ASSERT FAIL INFO]: %s  Expect: 0x%08X, Got: 0x%08X \n",\
+            #name, u32_from_word(w), u32_from_word(w1)\
+           );\
+           return 1; \
+        } \
+    } \
+    printf("[Pass]: %s", #name); \
+} while(0)
+
+
+int main() {
+    Dm_ dm;
+    init_dm_(&dm);
+    word address = {0};
+    bit bem[4] = {1, 1, 1, 1};
+    dm.m_write(&dm, address, WORD_4_BYTE, bem, 1, 1);
+    word ret = {0};
+    dm.m_read(&dm, address, ret);
+    ret[0] = 1;
+    ASSERT_EQ_WORD("dmtest", WORD_4_BYTE, ret);
+
+    printf("test");
+}

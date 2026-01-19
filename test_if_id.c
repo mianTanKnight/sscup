@@ -110,7 +110,7 @@ static int test_plus4_basic(void) {
 // ------------------------------------------------------------
 // 2) stall：pc_write=0 / if_id_write=0
 // ------------------------------------------------------------
-static void test_stall_pc_and_ifid_hold(void) {
+static int test_stall_pc_and_ifid_hold(void) {
     printf("\n=== test_stall_pc_and_ifid_hold ===\n");
 
     Im_t im;
@@ -160,7 +160,7 @@ static void test_stall_pc_and_ifid_hold(void) {
 // ------------------------------------------------------------
 // 3) flush：IF/ID.instr 变 NOP（推荐 pc_plus4 也一致刷新）
 // ------------------------------------------------------------
-static void test_flush_inject_nop(void) {
+static int test_flush_inject_nop(void) {
     printf("\n=== test_flush_inject_nop ===\n");
 
     Im_t im;
@@ -207,7 +207,7 @@ static void test_flush_inject_nop(void) {
 }
 
 
-static void test_flush_inject_nop_strict(void) {
+static int test_flush_inject_nop_strict(void) {
     printf("\n=== test_flush_inject_nop_strict ===\n");
 
     Im_t im;

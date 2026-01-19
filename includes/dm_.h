@@ -4,6 +4,7 @@
 #ifndef SCCPU_DM__H
 #define SCCPU_DM__H
 #include "stdint.h"
+#include "common_.h"
 
 //dm 是属于内存模块,项目中的内存模块都应该以简单和实用实现,允许使用C语法和硬件黑盒性
 //dm 的读写标准, dm的输出与输入是以32bit单位为标准的
@@ -12,9 +13,9 @@
 typedef struct dm_ Dm_;
 
 // word is array type
-typedef void (*dm_read_fn)(const Dm_ *dm, word address, word ret);
+typedef void (*dm_read_fn)(Dm_ *dm, word address, word ret);
 
-typedef void (*dm_write_fn)(Dm_ *dm, word address, const word data, const word byte_enable_mask, const bit we,
+typedef void (*dm_write_fn)(Dm_ *dm, word address, word data, const bit byte_enable_mask[4], const bit we,
                             const bit clk);
 
 struct dm_ {
@@ -24,7 +25,8 @@ struct dm_ {
 };
 
 static inline
-void dm_read(const Dm_ *dm, word address, word ret) {
+void dm_read(Dm_ *dm, word address, word ret) {
+    memset(ret, 0, sizeof(word));
     const uint32_t idx = u32_from_word(address);
     if (idx >= DEFAULT_SIZE) return;
     const size_t len = (idx + 4 >= DEFAULT_SIZE) ? (DEFAULT_SIZE - 1 - idx) : 4;
@@ -39,20 +41,17 @@ void dm_read(const Dm_ *dm, word address, word ret) {
 }
 
 static inline
-void dm_write(Dm_ *dm, word address, const word data, const word byte_enable_mask, const bit we,
+void dm_write(Dm_ *dm, word address, word data, const bit byte_enable_mask[4], const bit we,
               const bit clk) {
     if (we & clk) {
         const uint32_t idx = u32_from_word(address);
         if (idx >= DEFAULT_SIZE) return;
-        word v = {0};
-        for (size_t i = 0; i < WORD_SIZE; i++) {
-            v[i] = data[i] & byte_enable_mask[i];
-        }
         uint8_t d_4int8[4] = {0};
-        u32_from_4byte(v, d_4int8);
+        u32_from_4byte(data, d_4int8);
         const size_t len = (idx + 4 >= DEFAULT_SIZE) ? (DEFAULT_SIZE - 1 - idx) : 4;
         for (size_t i = 0; i < len; i++) {
-            dm->memory[idx + i] = d_4int8[i];
+            if (byte_enable_mask[i])
+                dm->memory[idx + i] = d_4int8[i];
         }
     }
 }
