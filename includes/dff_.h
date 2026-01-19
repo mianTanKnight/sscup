@@ -8,19 +8,22 @@
 #include "gate_.h"
 
 static inline bit d_latch(const bit d, const bit enable, bit OUT_Q, bit OUT_Q_BRA) {
-    bit S = AND(d, enable);
-    bit R = AND(NOT(d), enable);
+    const bit S = AND(d, enable);
+    const bit R = AND(NOT(d), enable);
     // OUT_Q 指的是上一次的结果 也可以是初始结果 也就是Q输出0
     bit stab = 0;
     while (!stab) {
-        bit NEXT_Q = NOR(R, OUT_Q_BRA);
-        bit NEXT_OUT_Q_BRA = NOR(S, OUT_Q);
-        if (NEXT_Q == OUT_Q && NEXT_OUT_Q_BRA == OUT_Q_BRA) {
-            stab = 1;
-        } else {
-            OUT_Q = NEXT_Q;
-            OUT_Q_BRA = NEXT_OUT_Q_BRA;
-        }
+        const bit NEXT_Q = NOR(R, OUT_Q_BRA);
+        const bit NEXT_OUT_Q_BRA = NOR(S, OUT_Q);
+        stab = AND(NOT(XOR(NEXT_Q, OUT_Q)), NOT(XOR(NEXT_OUT_Q_BRA, OUT_Q_BRA)));
+        OUT_Q = mux2_1(NEXT_Q, OUT_Q, stab);
+        OUT_Q_BRA = mux2_1(NEXT_OUT_Q_BRA, OUT_Q_BRA, stab);
+        // if (NEXT_Q == OUT_Q && NEXT_OUT_Q_BRA == OUT_Q_BRA) {
+        //     stab = 1;
+        // } else {
+        //     OUT_Q = NEXT_Q;
+        //     OUT_Q_BRA = NEXT_OUT_Q_BRA;
+        // }
     }
     return OUT_Q;
 }

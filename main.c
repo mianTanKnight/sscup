@@ -270,14 +270,14 @@ void mock_reg32_q(Reg32_ *r, uint32_t val) {
     }
 }
 
-int main() {
-    Dm_ dm;
-    init_dm_(&dm);
-    word address = {0};
-    dm.m_write(&dm, address, WORD_4_BYTE, ALL1, 1, 1);
-    word ret = {0};
-    dm.m_read(&dm, address, ret);
-
-
-    printf("test");
-}
+// int main() {
+//     Dm_ dm;
+//     init_dm_(&dm);
+//     word address = {0};
+//     dm.m_write(&dm, address, WORD_4_BYTE, ALL1, 1, 1);
+//     word ret = {0};
+//     dm.m_read(&dm, address, ret);
+//
+//
+//     printf("test");
+// }

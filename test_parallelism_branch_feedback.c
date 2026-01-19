@@ -156,13 +156,13 @@ static inline void cpu_phase(Cpu_t *c, const Im_t *im, bit clk) {
     // hazard
     hazard_comb_c(c, pc_src, branch_target);
 
-    c->ifid_write.pc_write = pc_write;
-    c->ifid_write.if_id_write = if_id_write;
-    if_id_regs_step(&c->ifid, im, &c->pc, &c->pc_ops, &c->ifid_write, &overflow, clk);
-
     c->id_ex_write.id_ex_write = id_ex_write;
     // // Reads from IF/ID.Q
     id_ex_regs_step(&c->idex, &c->ifid, &c->rf, &c->id_ex_write, clk);
+
+    c->ifid_write.pc_write = pc_write;
+    c->ifid_write.if_id_write = if_id_write;
+    if_id_regs_step(&c->ifid, im, &c->pc, &c->pc_ops, &c->ifid_write, &overflow, clk);
 }
 
 static inline void cpu_cycle(Cpu_t *c, const Im_t *im) {
