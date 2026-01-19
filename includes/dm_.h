@@ -25,13 +25,14 @@ struct dm_ {
 
 static inline
 void dm_read(const Dm_ *dm, word address, word ret) {
-    uint32_t idx = u32_from_word(address);
+    const uint32_t idx = u32_from_word(address);
     if (idx >= DEFAULT_SIZE) return;
     const size_t len = (idx + 4 >= DEFAULT_SIZE) ? (DEFAULT_SIZE - 1 - idx) : 4;
     size_t s = 0;
     for (size_t i = 0; i < len; i++) {
-        uint8_t u = dm->memory[idx + i];
+        const uint8_t u = dm->memory[idx + i];
         for (int j = 7; j >= 0; j--) {
+            // 需要倒读
             ret[s++] = GET_BIT_UINT8(u, j);
         }
     }
@@ -41,7 +42,7 @@ static inline
 void dm_write(Dm_ *dm, word address, const word data, const word byte_enable_mask, const bit we,
               const bit clk) {
     if (we & clk) {
-        uint32_t idx = u32_from_word(address);
+        const uint32_t idx = u32_from_word(address);
         if (idx >= DEFAULT_SIZE) return;
         word v = {0};
         for (size_t i = 0; i < WORD_SIZE; i++) {
