@@ -26,4 +26,5 @@ add_executable(sccpu main.c
         includes/dm_.h
         test_dm.c
         includes/mem_wb.h
+        includes/wb_.h
 )
