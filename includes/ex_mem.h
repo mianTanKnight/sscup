@@ -62,8 +62,8 @@ hazard(If_id_pc_ops *ops,
 }
 
 
-static inline void
-ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
+static inline
+void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
                  Ex_mem_regs *ex_mem_regs,
                  pc_ops pc_src, // The head pointer of the array
                  word branch_target, // The head pointer of the array

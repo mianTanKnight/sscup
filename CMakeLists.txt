@@ -25,4 +25,5 @@ add_executable(sccpu main.c
         test_parallelism_branch_feedback.c
         includes/dm_.h
         test_dm.c
+        includes/mem_wb.h
 )

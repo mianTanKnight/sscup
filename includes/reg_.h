@@ -117,4 +117,8 @@ reg324file_step(Reg324file_ *reg324, const Regfile_in *in, word rd1, word rd2, c
 }
 
 
+/*********************************************Macro***************************************************************/
+#define GET_BIT_OF_REG32(r_ptr,n) ((r_ptr)->dffs[INST_WORD((n))].dff.Q)
+
+
 #endif //SCCPU_REG__H
