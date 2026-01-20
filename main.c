@@ -287,15 +287,4 @@ do {\
 
 
 int main() {
-    Dm_ dm;
-    init_dm_(&dm);
-    word address = {0};
-    bit bem[4] = {1, 1, 1, 1};
-    dm.m_write(&dm, address, WORD_4_BYTE, bem, 1, 1);
-    word ret = {0};
-    dm.m_read(&dm, address, ret);
-    ret[0] = 1;
-    ASSERT_EQ_WORD("dmtest", WORD_4_BYTE, ret);
-
-    printf("test");
 }

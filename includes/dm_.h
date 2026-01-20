@@ -3,6 +3,7 @@
 //
 #ifndef SCCPU_DM__H
 #define SCCPU_DM__H
+#include "string.h"
 #include "stdint.h"
 #include "common_.h"
 
