@@ -17,7 +17,7 @@
 #ifndef INST_BIT
 #define INST_BIT(instr, n) ((instr)[31 - (n)])  // n 是“位编号”31..0
 #endif
-#include "../includes/common_test.h"
+#include "common_test.h"
 
 // ------------------------------------------------------------
 // 指令编码（用 u32 构造，再转 word）

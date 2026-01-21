@@ -11,7 +11,7 @@
 #include "../includes/im_.h"
 #include "../includes/pc_.h"
 #include "../includes/if_id_.h"
-#include "../includes/common_test.h"
+#include "common_test.h"
 
 
 // 每拍严格二段式

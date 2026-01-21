@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "../includes/common_test.h"
+#include "common_test.h"
 #include "../includes/ex_mem.h"
 #include "../includes/mem_wb.h"
 #include "../includes/dm_.h"

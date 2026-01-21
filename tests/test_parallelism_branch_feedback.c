@@ -2,7 +2,7 @@
 // Created by wenshen on 2026/1/9.
 //
 
-#include "../includes/common_test.h"
+#include "common_test.h"
 
 #ifdef ASSERT_EQ_U32
 #undef ASSERT_EQ_U32

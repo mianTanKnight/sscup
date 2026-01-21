@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "../includes/common_test.h"
+#include "common_test.h"
 #include "../includes/wb_.h"
 #include "../includes/mem_wb.h"
 

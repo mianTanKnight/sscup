@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "../includes/common_test.h"
+#include "common_test.h"
 
 // 你的工程头文件
 #include "../includes/common_.h"
