@@ -19,11 +19,11 @@ for 循环不代表迭代，代表 空间上的并行连线 (Instantiation)。
 
 严格的时序模型 (Strict Timing Model):
 
-采用 二段式仿真 (Two-Phase Simulation) 机制：
+     采用 二段式仿真 (Two-Phase Simulation) 机制：
 
-CLK=0: 组合逻辑计算 (Combinational Logic Evaluation)。计算导线 (Wire) 电平。
+          CLK=0: 组合逻辑计算 (Combinational Logic Evaluation)。计算导线 (Wire) 电平。
 
-CLK=1: 时序逻辑更新 (Sequential Logic Update)。触发器 (State) 翻转。
+          CLK=1: 时序逻辑更新 (Sequential Logic Update)。触发器 (State) 翻转。
 
 严格区分 Wire (瞬时导线) 与 Reg (延时存储)。
 
