@@ -11,11 +11,11 @@ SCCPU 是一个 从零构建的、RTL (寄存器传输级) 精度 的 32 位流�
 
 #### 电路化编程 (Circuit-Oriented Programming):
 
-拒绝 if/else: 控制逻辑完全由与或非门 (AND/OR/NOT) 和多路选择器 (MUX) 构建。
+控制逻辑完全由与或非门 (AND/OR/NOT) 和多路选择器 (MUX) 构建。
 
-拒绝隐式状态: 所有的状态必须存储在显式的触发器 (DFF) 或寄存器 (Reg) 中。
+所有的状态必须存储在显式的触发器 (DFF) 或寄存器 (Reg) 中。
 
-并行语义: for 循环不代表迭代，代表 空间上的并行连线 (Instantiation)。
+for 循环不代表迭代，代表 空间上的并行连线 (Instantiation)。
 
 严格的时序模型 (Strict Timing Model):
 
