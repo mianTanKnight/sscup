@@ -11,15 +11,15 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "includes/common_test.h"
+#include "../includes/common_test.h"
 
 // 你的工程头文件
-#include "includes/common_.h"
-#include "includes/reg_.h"
-#include "includes/alu_.h"
-#include "includes/isa_.h"
-#include "includes/if_id_.h"
-#include "includes/id_ex_.h"   // 你当前的 id_ex_regs_step / id_ex_regs 定义
+#include "../includes/common_.h"
+#include "../includes/reg_.h"
+#include "../includes/alu_.h"
+#include "../includes/isa_.h"
+#include "../includes/if_id_.h"
+#include "../includes/id_ex_.h"
 
 // -------------------------
 // 兼容：如果某些宏没暴露，这里兜底

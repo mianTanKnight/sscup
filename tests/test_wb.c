@@ -6,9 +6,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "includes/common_test.h"
-#include "includes/wb_.h"     // 你的 wb_step
-#include "includes/mem_wb.h"  // Mem_wb_regs + init
+#include "../includes/common_test.h"
+#include "../includes/wb_.h"
+#include "../includes/mem_wb.h"
 
 // -------------------------
 // 辅助：写 Mem_wb_regs（two-stage 写寄存器）
@@ -268,18 +268,18 @@ static int test_wb_fuzz_golden(int N) {
     return 0;
 }
 
-// int main(void) {
-//     printf("=== TEST: WB Full Regression ===\n");
-//
-//     int rc = 0;
-//     rc |= test_wb_alu_path_basic();
-//     rc |= test_wb_mem_path_basic();
-//     rc |= test_wb_regwrite_disable();
-//     rc |= test_wb_idx_decode_all();
-//     rc |= test_wb_fuzz_golden(5000);
-//
-//     if (rc == 0) {
-//         printf("\nALL WB TESTS PASSED ✅\n");
-//     }
-//     return rc;
-// }
+int main(void) {
+    printf("=== TEST: WB Full Regression ===\n");
+
+    int rc = 0;
+    rc |= test_wb_alu_path_basic();
+    rc |= test_wb_mem_path_basic();
+    rc |= test_wb_regwrite_disable();
+    rc |= test_wb_idx_decode_all();
+    rc |= test_wb_fuzz_golden(5000);
+
+    if (rc == 0) {
+        printf("\nALL WB TESTS PASSED ✅\n");
+    }
+    return rc;
+}

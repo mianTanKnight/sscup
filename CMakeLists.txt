@@ -14,19 +14,20 @@ add_executable(sccpu main.c
         includes/isa_.h
         includes/decoder_.h
         includes/im_.h
-        test_decoder.c
+        tests/test_decoder.c
         includes/if_id_.h
-        test_if_id.c
+        tests/test_if_id.c
         includes/id_ex_.h
-        test_id_ex.c
+        tests/test_id_ex.c
         includes/ex_mem.h
-        test_ex_mem.c
+        tests/test_ex_mem.c
         includes/common_test.h
-        test_parallelism_branch_feedback.c
+        tests/test_parallelism_branch_feedback.c
         includes/dm_.h
-        test_dm.c
+        tests/test_dm.c
         includes/mem_wb.h
         includes/wb_.h
-        test_mem_wb.c
-        test_wb.c
+        tests/test_mem_wb.c
+        tests/test_wb.c
+        includes/cpu_core.h
 )

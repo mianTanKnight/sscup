@@ -3,12 +3,12 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "includes/common_.h"
-#include "includes/reg_.h"
-#include "includes/if_id_.h"
-#include "includes/id_ex_.h"
-#include "includes/ex_mem.h"
-#include  "includes/common_test.h"
+#include "../includes/common_.h"
+#include "../includes/reg_.h"
+#include "../includes/if_id_.h"
+#include "../includes/id_ex_.h"
+#include "../includes/ex_mem.h"
+#include "../includes/common_test.h"
 // -------------------------
 // 你在 ID/EX 里对 decode_signals 的布局：
 //  bit31..bit21 使用（高位开始），其余为 0

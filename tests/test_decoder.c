@@ -6,10 +6,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "includes/common_.h"
-#include "includes/alu_.h"
-#include "includes/isa_.h"
-#include "includes/decoder_.h"
+#include "../includes/common_.h"
+#include "../includes/alu_.h"
+#include "../includes/isa_.h"
+#include "../includes/decoder_.h"
 
 // ------------------------------------------------------------
 // 位序约定：word[0]=bit31 ... word[31]=bit0
@@ -17,7 +17,7 @@
 #ifndef INST_BIT
 #define INST_BIT(instr, n) ((instr)[31 - (n)])  // n 是“位编号”31..0
 #endif
-#include "includes/common_test.h"
+#include "../includes/common_test.h"
 
 // ------------------------------------------------------------
 // 指令编码（用 u32 构造，再转 word）
