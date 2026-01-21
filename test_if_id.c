@@ -255,7 +255,7 @@ static int test_flush_inject_nop_strict(void) {
     ASSERT_EQ_U32("PC after flush tick == 12", pc_after, 12);
 }
 
-// int main1(void) {
+// int main(void) {
 //     test_plus4_basic();
 //     test_stall_pc_and_ifid_hold();
 //     test_flush_inject_nop();

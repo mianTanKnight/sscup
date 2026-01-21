@@ -344,18 +344,18 @@ static int test_last_word_boundary(void) {
 
 // ------------------------------------------------------------
 
-int main(void) {
-    printf("=== TEST: MEM stage + MEM/WB Full Regression ===\n");
-
-    int rc = 0;
-    rc |= test_penetrate_and_latch();
-    rc |= test_store_gating_and_disable();
-    rc |= test_store_byte_masks();
-    rc |= test_unaligned_forbidden_policy();
-    rc |= test_last_word_boundary();
-
-    if (rc == 0) {
-        printf("\nALL MEM/WB TESTS PASSED ✅\n");
-    }
-    return rc;
-}
+// int main(void) {
+//     printf("=== TEST: MEM stage + MEM/WB Full Regression ===\n");
+//
+//     int rc = 0;
+//     rc |= test_penetrate_and_latch();
+//     rc |= test_store_gating_and_disable();
+//     rc |= test_store_byte_masks();
+//     rc |= test_unaligned_forbidden_policy();
+//     rc |= test_last_word_boundary();
+//
+//     if (rc == 0) {
+//         printf("\nALL MEM/WB TESTS PASSED ✅\n");
+//     }
+//     return rc;
+// }

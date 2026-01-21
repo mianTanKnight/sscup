@@ -364,21 +364,21 @@ static int test_fuzz_against_golden_model(void) {
     return 0;
 }
 
-int main(void) {
-    printf("=== TEST: DM Full Regression ===\n");
-    printf("[INFO] Policy: DM_ALLOW_UNALIGNED=%d, DM_TRUNCATE_NEAR_END=%d, FUZZ=%d\n",
-           DM_ALLOW_UNALIGNED, DM_TRUNCATE_NEAR_END, DM_FUZZ_ITERS);
-
-    int rc = 0;
-    rc |= test_basic_rw_and_async_read();
-    rc |= test_write_gating_we_and_clk();
-    rc |= test_mask_zero_is_no_write();
-    rc |= test_mask_all_16_patterns();
-    rc |= test_unaligned_policy();
-    rc |= test_fuzz_against_golden_model();
-
-    if (rc == 0) {
-        printf("\nALL DM FULL TESTS PASSED ✅\n");
-    }
-    return rc;
-}
+// int main(void) {
+//     printf("=== TEST: DM Full Regression ===\n");
+//     printf("[INFO] Policy: DM_ALLOW_UNALIGNED=%d, DM_TRUNCATE_NEAR_END=%d, FUZZ=%d\n",
+//            DM_ALLOW_UNALIGNED, DM_TRUNCATE_NEAR_END, DM_FUZZ_ITERS);
+//
+//     int rc = 0;
+//     rc |= test_basic_rw_and_async_read();
+//     rc |= test_write_gating_we_and_clk();
+//     rc |= test_mask_zero_is_no_write();
+//     rc |= test_mask_all_16_patterns();
+//     rc |= test_unaligned_policy();
+//     rc |= test_fuzz_against_golden_model();
+//
+//     if (rc == 0) {
+//         printf("\nALL DM FULL TESTS PASSED ✅\n");
+//     }
+//     return rc;
+// }
