@@ -7,6 +7,7 @@
 #include "if_id_.h"
 #include "id_ex_.h"
 #include "alu_.h"
+#include "utils.h"
 
 typedef struct ex_mem_regs {
     Reg32_ mem_single; // mem_read, mem_write

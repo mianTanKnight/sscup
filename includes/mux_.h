@@ -4,7 +4,6 @@
 
 #ifndef SCCPU_MUX__H
 #define SCCPU_MUX__H
-#include "common_.h"
 #include "gate_.h"
 
 static inline bit mux2_1(const bit input0, const bit input1, const bit sel) {

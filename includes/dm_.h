@@ -6,6 +6,7 @@
 #include "string.h"
 #include "stdint.h"
 #include "common_.h"
+#include "utils.h"
 
 //dm 是属于内存模块,项目中的内存模块都应该以简单和实用实现,允许使用C语法和硬件黑盒性
 //dm 的读写标准, dm的输出与输入是以32bit单位为标准的

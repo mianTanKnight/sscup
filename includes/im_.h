@@ -7,6 +7,7 @@
 #define IM_SIZE 256
 #include "common_.h"
 #include "string.h"
+#include "utils.h"
 // IM 模块允许使用 "高级语法"
 // 它本质是指令的储存柜
 // 就像我们使用 bool 是表示 bit 而非 dff

@@ -8,6 +8,7 @@
 #include "decoder_.h"
 #include "reg_.h"
 #include "if_id_.h"
+#include "utils.h"
 
 typedef struct id_ex_regs {
     // Form decode
