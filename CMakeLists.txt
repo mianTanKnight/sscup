@@ -31,4 +31,5 @@ add_executable(sccpu main.c
         tests/test_wb.c
         includes/cpu_core.h
         includes/utils.h
+        tests/test_dff_contract.c
 )

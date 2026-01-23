@@ -8,6 +8,7 @@
 #include "../includes/if_id.h"
 #include "../includes/id_ex.h"
 #include "../includes/ex_mem.h"
+#include "../includes/utils.h"
 #include "common_test.h"
 // -------------------------
 // 你在 ID/EX 里对 decode_signals 的布局：
@@ -58,11 +59,6 @@ static inline void idex_load_minimal(Id_ex_regs *idex,
     reg32_write_u32(&idex->rt_idx, rt_idx);
     reg32_write_u32(&idex->rd_idx, rd_idx);
     reg32_write_u32(&idex->pc_plus4, pc_plus4);
-}
-
-// 把 word decode_signals 转成 u32（方便写入 reg32）
-static inline uint32_t word_to_u32(const word w) {
-    return u32_from_word_local(w);
 }
 
 // 二段式调用 EX/MEM step（模拟你项目一周期两次调用）

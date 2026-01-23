@@ -43,6 +43,11 @@ typedef struct cpu_core {
 } Cpu_core;
 
 static inline
+void cpu_dump(const Cpu_core *c);
+static inline
+void hazard_unit_evaluate(Cpu_core *c);
+
+static inline
 void init_cpu_c(Cpu_core *c) {
     init_pc32(&c->pc);
     init_if_id_regs(&c->if_id);
@@ -57,6 +62,84 @@ void init_cpu_c(Cpu_core *c) {
     memset(&c->wire_id_ex_ctrl, 0, sizeof(Id_ex_write));
     c->cycle_count = 0;
 }
+
+static inline void hazard_unit_evaluate(Cpu_core *c) {
+    // 1. 获取 EX 阶段算出的跳转信号 (Wire)
+    const bit branch_taken = AND(c->wire_pc_src[0], NOT(c->wire_pc_src[1]));
+    // 2. 生成控制信号 (Glue Logic)
+    // 目前策略：遇到跳转就 Flush IF和ID
+    c->wire_if_id_ctrl.if_id_flush = branch_taken;
+    c->wire_id_ex_ctrl.id_ex_flush = branch_taken; // 激进策略：连 ID 级也杀掉
+
+    c->wire_if_id_ctrl.pc_write = 1;
+    c->wire_if_id_ctrl.if_id_write = 1;
+    c->wire_id_ex_ctrl.id_ex_write = 1;
+}
+
+// Sampling
+static inline
+void falling_edge(Cpu_core *c) {
+    bit overflow_ = 0;
+    // ============================================================
+    // Phase 0: Combinational Logic Evaluation (CLK = 0)
+    // 目标：计算所有 Wires，准备好 D 端的输入,采样(Sampling)
+    // 顺序: 为了让“回环”生效，必须先算后端，再算前端
+    // ============================================================
+    wb_step(&c->mem_wb, &c->rf, 0);
+
+    // 2. MEM 阶段
+    //write_enabled 掩码暂时全1
+    bit mem_we_mask[4] = {1, 1, 1, 1};
+    mem_wb_regs_step(&c->ex_mem, &c->mem_wb, &c->dm, mem_we_mask, 0);
+
+    // ex_flush暂无
+    ex_mem_regs_step(&c->id_ex, &c->ex_mem, c->wire_pc_src, c->wire_branch_target,
+                     0, &overflow_, 0);
+    hazard_unit_evaluate(c);
+
+    id_ex_regs_step(&c->id_ex, &c->if_id, &c->rf, &c->wire_id_ex_ctrl, 0);
+
+    If_id_pc_ops if_ops_in;
+    if_ops_in.pc_ops_[0] = c->wire_pc_src[0];
+    if_ops_in.pc_ops_[1] = c->wire_pc_src[1];
+    connect(c->wire_branch_target, if_ops_in.branch_target_wire);
+    // todo ... jump/exception targets ...
+
+    if_id_regs_step(&c->if_id, &c->im, &c->pc,
+                    &if_ops_in, &c->wire_if_id_ctrl,
+                    &overflow_, 0);
+}
+
+// Store
+static inline
+void rising_edge(Cpu_core *c) {
+    bit overflow_ = 0;
+    const bit mem_we_mask[4] = {1, 1, 1, 1};
+
+    // 1. WB (写回 RegFile)
+    wb_step(&c->mem_wb, &c->rf, 1);
+
+    // 2. MEM (写 Memory, 更新 MEM/WB)
+    mem_wb_regs_step(&c->ex_mem, &c->mem_wb, &c->dm, mem_we_mask, 1);
+
+    // 3. EX (更新 EX/MEM)
+    ex_mem_regs_step(&c->id_ex, &c->ex_mem, c->wire_pc_src, c->wire_branch_target, 0, &overflow_, 1);
+
+    // 4. ID (更新 ID/EX)
+    id_ex_regs_step(&c->id_ex, &c->if_id, &c->rf, &c->wire_id_ex_ctrl, 1);
+
+    If_id_pc_ops if_ops_in;
+    if_ops_in.pc_ops_[0] = c->wire_pc_src[0];
+    if_ops_in.pc_ops_[1] = c->wire_pc_src[1];
+    // 5. IF (更新 IF/ID 和 PC)
+    if_id_regs_step(&c->if_id, &c->im, &c->pc, &if_ops_in, &c->wire_if_id_ctrl, &overflow_, 1);
+
+    c->cycle_count++;
+
+    // Dump Log
+    cpu_dump(c);
+}
+
 
 static inline
 void cpu_dump(const Cpu_core *c) {

@@ -82,6 +82,97 @@ uint32_t reg32_read_u32_(const Reg32_ *rp) {
 }
 
 
+// ------------------------------------------------------------
+// 指令编码：只用 MIPS 的 BEQ/ADDI 格式（你 ISA 里就是这样）
+// 你的寄存器只有 0..3，所以只塞低2位即可（高3位为0）
+// ------------------------------------------------------------
+static inline uint32_t enc_addi(uint8_t rt, uint8_t rs, int16_t imm) {
+    // OP_ADDI = 0b001000
+    return ((uint32_t) OP_ADDI << 26)
+           | ((uint32_t) (rs & 3) << 21)
+           | ((uint32_t) (rt & 3) << 16)
+           | ((uint16_t) imm);
+}
+
+static inline uint32_t enc_beq(uint8_t rs, uint8_t rt, int16_t imm) {
+    // OP_BEQ = 0b000100
+    return ((uint32_t) OP_BEQ << 26)
+           | ((uint32_t) (rs & 3) << 21)
+           | ((uint32_t) (rt & 3) << 16)
+           | ((uint16_t) imm);
+}
+
+// ------------------------------------------------------------
+// 编码 R-Type 指令
+// 格式: [Op 6] [RS 5] [RT 5] [RD 5] [Shamt 5] [Funct 6]
+// ------------------------------------------------------------
+static inline uint32_t enc_r(uint8_t rs, uint8_t rt, uint8_t rd, uint8_t shamt, uint8_t funct) {
+    uint32_t op = OP_R_TYPE; // 通常 R-Type 的 Opcode 都是 0
+
+    // 你的寄存器索引只有 2-bit (0..3)，这里做个掩码保护
+    rs &= 0x3;
+    rt &= 0x3;
+    rd &= 0x3;
+    shamt &= 0x1F;
+    funct &= 0x3F;
+
+    return ((uint32_t)op    << 26) |
+           ((uint32_t)rs    << 21) |
+           ((uint32_t)rt    << 16) |
+           ((uint32_t)rd    << 11) |
+           ((uint32_t)shamt << 6)  |
+           ((uint32_t)funct);
+}
+
+// ------------------------------------------------------------
+// 编码 I-Type 指令 (包括 ADDI, LW, SW, BEQ)
+// 格式: [Op 6] [RS 5] [RT 5] [Immediate 16]
+// ------------------------------------------------------------
+static inline uint32_t enc_i(uint8_t opcode, uint8_t rs, uint8_t rt, int16_t imm) {
+    opcode &= 0x3F;
+    rs &= 0x3;
+    rt &= 0x3;
+    // imm 是有符号的，强转 uint16 截断低16位
+    uint16_t imm_u = (uint16_t)imm;
+
+    return ((uint32_t)opcode << 26) |
+           ((uint32_t)rs     << 21) |
+           ((uint32_t)rt     << 16) |
+           ((uint32_t)imm_u);
+}
+
+// ------------------------------------------------------------
+// 编码 J-Type 指令 (J)
+// 格式: [Op 6] [Address 26]
+// ------------------------------------------------------------
+static inline uint32_t enc_j(uint8_t opcode, uint32_t address) {
+    opcode &= 0x3F;
+    address &= 0x03FFFFFF; // 只取低 26 位
+
+    return ((uint32_t)opcode << 26) |
+           address;
+}
+
+
+// --------------------- Helpers: u32 <-> word ---------------------
+// word: MSB first: word[0]=bit31 ... word[31]=bit0
+static void u32_to_word(uint32_t v, word w) {
+    for (int i = 0; i < 32; i++) w[i] = (v >> (31 - i)) & 1u;
+}
+static uint32_t word_to_u32(const word w) {
+    uint32_t v = 0;
+    for (int i = 0; i < 32; i++) if (w[i]) v |= (1u << (31 - i));
+    return v;
+}
+
+static void mask_from_u4(uint32_t m, bit be[4]) {
+    // be[0] controls highest byte, be[3] controls lowest byte
+    be[0] = (m >> 3) & 1u;
+    be[1] = (m >> 2) & 1u;
+    be[2] = (m >> 1) & 1u;
+    be[3] = (m >> 0) & 1u;
+}
+
 static inline void dis_asm(const uint32_t inst, char *buffer) {
     const uint32_t op = (inst >> 26) & 0x3F;
     const uint32_t rs = (inst >> 21) & 0x1F; //只用低2位，但解码看5位

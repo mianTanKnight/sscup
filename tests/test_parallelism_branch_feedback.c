@@ -3,6 +3,7 @@
 //
 
 #include "common_test.h"
+#include "../includes/utils.h"
 
 #ifdef ASSERT_EQ_U32
 #undef ASSERT_EQ_U32
@@ -85,26 +86,6 @@ static void print_pipeline_state(const char *tag, Cpu_t *cpu) {
     printf("----------------------------------\n");
 }
 
-
-// ------------------------------------------------------------
-// 指令编码：只用 MIPS 的 BEQ/ADDI 格式（你 ISA 里就是这样）
-// 你的寄存器只有 0..3，所以只塞低2位即可（高3位为0）
-// ------------------------------------------------------------
-static inline uint32_t enc_beq(uint8_t rs, uint8_t rt, int16_t imm) {
-    // OP_BEQ = 0b000100
-    return ((uint32_t) OP_BEQ << 26)
-           | ((uint32_t) (rs & 3) << 21)
-           | ((uint32_t) (rt & 3) << 16)
-           | ((uint16_t) imm);
-}
-
-static inline uint32_t enc_addi(uint8_t rt, uint8_t rs, int16_t imm) {
-    // OP_ADDI = 0b001000
-    return ((uint32_t) OP_ADDI << 26)
-           | ((uint32_t) (rs & 3) << 21)
-           | ((uint32_t) (rt & 3) << 16)
-           | ((uint16_t) imm);
-}
 
 static inline
 void init_cpu(Cpu_t *c) {

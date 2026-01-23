@@ -56,7 +56,6 @@ static inline void dff_update(dff_ *dff_, const bit clk, const bit d) {
 }
 
 static inline bit dff_deh_step(dff_b_ *_dff_b, const bit clk, const bit d) {
-    dff_update(&_dff_b->dff, 0, d);
     dff_update(&_dff_b->dff, AND(NOT(_dff_b->prev_clk), clk), d);
     _dff_b->prev_clk = clk;
     return _dff_b->dff.Q;
