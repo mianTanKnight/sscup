@@ -1,8 +1,8 @@
 //
 // Created by wenshen on 2026/1/17.
 //
-#ifndef SCCPU_DM__H
-#define SCCPU_DM__H
+#ifndef SCCPU_DM_H
+#define SCCPU_DM_H
 #include "string.h"
 #include "stdint.h"
 #include "common.h"
@@ -71,4 +71,4 @@ void init_dm_(Dm_ *dm) {
 }
 
 
-#endif //SCCPU_DM__H
+#endif //SCCPU_DM_H
