@@ -6,9 +6,9 @@
 #define SCCPU_UTILS_H
 #include "stdint.h"
 #include "stdio.h"
-#include "reg_.h"
-#include "isa_.h"
-#include "common_.h"
+#include "reg.h"
+#include "isa.h"
+#include "common.h"
 
 // word[0]=MSB
 static inline void word_lshift2(const word in, word out) {

@@ -3,10 +3,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../includes/common_.h"
-#include "../includes/reg_.h"
-#include "../includes/if_id_.h"
-#include "../includes/id_ex_.h"
+#include "../includes/common.h"
+#include "../includes/reg.h"
+#include "../includes/if_id.h"
+#include "../includes/id_ex.h"
 #include "../includes/ex_mem.h"
 #include "common_test.h"
 // -------------------------

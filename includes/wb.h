@@ -5,8 +5,8 @@
 #ifndef SCCPU_WB__H
 #define SCCPU_WB__H
 
-#include "common_.h"
-#include "reg_.h"
+#include "common.h"
+#include "reg.h"
 #include "mem_wb.h"
 
 

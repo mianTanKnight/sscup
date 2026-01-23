@@ -6,15 +6,15 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "../includes/common_.h"
-#include "../includes/reg_.h"
-#include "../includes/gate_.h"
-#include "../includes/pc_.h"
-#include "../includes/decoder_.h"
-#include "../includes/if_id_.h"
-#include "../includes/id_ex_.h"
+#include "../includes/common.h"
+#include "../includes/reg.h"
+#include "../includes/gate.h"
+#include "../includes/pc.h"
+#include "../includes/decoder.h"
+#include "../includes/if_id.h"
+#include "../includes/id_ex.h"
 #include "../includes/ex_mem.h"
-#include "../includes/im_.h"
+#include "../includes/im.h"
 
 // 约定：word[0] 是 MSB，word[31] 是 LSB（与你 INST_BIT/INST_WORD 宏一致）
 static inline void word_zero(word w) {

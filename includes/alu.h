@@ -5,9 +5,9 @@
 #ifndef SCCPU_ALU__H
 #define SCCPU_ALU__H
 
-#include "common_.h"
-#include "gate_.h"
-#include "mux_.h"
+#include "common.h"
+#include "gate.h"
+#include "mux.h"
 
 
 /**
@@ -22,15 +22,15 @@
  * 111     NULL   Arith(1)       0
  */
 typedef bit ops[3];
-const static ops OPS_ADD_ = {1, 0, 0};
-const static ops OPS_SUB_ = {1, 0, 1};
-const static ops OPS_SLT_ = {1, 1, 0};
-const static ops OPS_NULL_ = {1, 1, 1};
+static const ops OPS_ADD_ = {1, 0, 0};
+static const  ops OPS_SUB_ = {1, 0, 1};
+static const ops OPS_SLT_ = {1, 1, 0};
+static const ops OPS_NULL_ = {1, 1, 1};
 
-const static ops OPS_AND_ = {0, 0, 0};
-const static ops OPS_OR_ = {0, 0, 1};
-const static ops OPS_XOR_ = {0, 1, 0};
-const static ops OPS_NOR_ = {0, 1, 1};
+static const ops OPS_AND_ = {0, 0, 0};
+static const ops OPS_OR_ = {0, 0, 1};
+static const ops OPS_XOR_ = {0, 1, 0};
+static const ops OPS_NOR_ = {0, 1, 1};
 
 
 static inline bit full_adder(const bit input1, const bit input2, const bit cin, bit *cout) {

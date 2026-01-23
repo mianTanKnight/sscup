@@ -5,9 +5,9 @@
 #ifndef SCCPU_ID_EX__H
 #define SCCPU_ID_EX__H
 
-#include "decoder_.h"
-#include "reg_.h"
-#include "if_id_.h"
+#include "decoder.h"
+#include "reg.h"
+#include "if_id.h"
 #include "utils.h"
 
 typedef struct id_ex_regs {

@@ -4,10 +4,10 @@
 
 #ifndef SCCPU_MEM_WB_H
 #define SCCPU_MEM_WB_H
-#include "reg_.h"
-#include "common_.h"
+#include "reg.h"
+#include "common.h"
 #include "ex_mem.h"
-#include "dm_.h"
+#include "dm.h"
 
 typedef struct mem_wb_regs {
     Reg32_ wb_single; // penetrate

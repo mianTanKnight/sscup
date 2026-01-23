@@ -6,10 +6,10 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../includes/common_.h"
-#include "../includes/alu_.h"
-#include "../includes/isa_.h"
-#include "../includes/decoder_.h"
+#include "../includes/common.h"
+#include "../includes/alu.h"
+#include "../includes/isa.h"
+#include "../includes/decoder.h"
 
 // ------------------------------------------------------------
 // 位序约定：word[0]=bit31 ... word[31]=bit0

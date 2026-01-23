@@ -4,8 +4,8 @@
 
 #ifndef SCCPU_ISA__H
 #define SCCPU_ISA__H
-#include "common_.h"
-#include "gate_.h"
+#include "common.h"
+#include "gate.h"
 /**
  * Basic Specs
  *

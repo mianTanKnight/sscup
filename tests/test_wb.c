@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 #include "common_test.h"
-#include "../includes/wb_.h"
+#include "../includes/wb.h"
 #include "../includes/mem_wb.h"
 
 // -------------------------

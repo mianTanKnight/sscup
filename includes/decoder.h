@@ -4,8 +4,8 @@
 
 #ifndef SCCPU_DECODER__H
 #define SCCPU_DECODER__H
-#include "alu_.h"
-#include "isa_.h"
+#include "alu.h"
+#include "isa.h"
 
 // info see @isa_.h
 

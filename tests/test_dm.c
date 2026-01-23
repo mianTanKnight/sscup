@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "../includes/common_.h"
-#include "../includes/dm_.h"
+#include "../includes/common.h"
+#include "../includes/dm.h"
 
 // ====================== POLICY SWITCHES ======================
 // 1) Unaligned address policy:

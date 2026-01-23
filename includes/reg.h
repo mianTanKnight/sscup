@@ -5,9 +5,9 @@
 #ifndef SCCPU_REG__H
 #define SCCPU_REG__H
 
-#include "common_.h"
-#include "mux_.h"
-#include "dff_.h"
+#include "common.h"
+#include "mux.h"
+#include "dff.h"
 
 typedef struct reg32_ {
     dff_b_ dffs[WORD_SIZE];

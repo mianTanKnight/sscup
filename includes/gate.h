@@ -4,7 +4,7 @@
 
 #ifndef SCCPU_GATE__H
 #define SCCPU_GATE__H
-#include "common_.h"
+#include "common.h"
 
 static inline bit NOT(const bit input) {
     return !input;

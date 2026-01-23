@@ -4,10 +4,10 @@
 
 #ifndef SCCPU_IF_ID__H
 #define SCCPU_IF_ID__H
-#include "common_.h"
-#include "reg_.h"
-#include "im_.h"
-#include "pc_.h"
+#include "common.h"
+#include "reg.h"
+#include "im.h"
+#include "pc.h"
 
 typedef bit pc_ops[2];
 const static pc_ops PLUSH_4 = {0, 0};

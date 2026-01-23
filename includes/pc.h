@@ -4,9 +4,9 @@
 
 #ifndef SCCPU_PC__H
 #define SCCPU_PC__H
-#include "mux_.h"
-#include "alu_.h"
-#include "reg_.h"
+#include "mux.h"
+#include "alu.h"
+#include "reg.h"
 
 const static bit
 WORD_4_BYTE[32] = {

@@ -5,7 +5,7 @@
 #ifndef SCCPU_IM__H
 #define SCCPU_IM__H
 #define IM_SIZE 256
-#include "common_.h"
+#include "common.h"
 #include "string.h"
 #include "utils.h"
 // IM 模块允许使用 "高级语法"

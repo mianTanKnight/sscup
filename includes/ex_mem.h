@@ -4,9 +4,9 @@
 
 #ifndef SCCPU_EX_MEM_H
 #define SCCPU_EX_MEM_H
-#include "if_id_.h"
-#include "id_ex_.h"
-#include "alu_.h"
+#include "if_id.h"
+#include "id_ex.h"
+#include "alu.h"
 #include "utils.h"
 
 typedef struct ex_mem_regs {

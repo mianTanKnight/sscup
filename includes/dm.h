@@ -5,7 +5,7 @@
 #define SCCPU_DM__H
 #include "string.h"
 #include "stdint.h"
-#include "common_.h"
+#include "common.h"
 #include "utils.h"
 
 //dm 是属于内存模块,项目中的内存模块都应该以简单和实用实现,允许使用C语法和硬件黑盒性

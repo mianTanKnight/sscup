@@ -4,7 +4,7 @@
 
 #ifndef SCCPU_MUX__H
 #define SCCPU_MUX__H
-#include "gate_.h"
+#include "gate.h"
 
 static inline bit mux2_1(const bit input0, const bit input1, const bit sel) {
     return OR(AND(NOT(sel), input0), AND(sel, input1));

@@ -6,11 +6,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "../includes/common_.h"
-#include "../includes/reg_.h"
-#include "../includes/im_.h"
-#include "../includes/pc_.h"
-#include "../includes/if_id_.h"
+#include "../includes/common.h"
+#include "../includes/reg.h"
+#include "../includes/im.h"
+#include "../includes/pc.h"
+#include "../includes/if_id.h"
 #include "common_test.h"
 
 

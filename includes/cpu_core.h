@@ -5,15 +5,15 @@
 #ifndef SCCPU_CPU_CORE_H
 #define SCCPU_CPU_CORE_H
 #include "stdio.h"
-#include "reg_.h"
-#include "pc_.h"
-#include "if_id_.h"
-#include "id_ex_.h"
+#include "reg.h"
+#include "pc.h"
+#include "if_id.h"
+#include "id_ex.h"
 #include "ex_mem.h"
 #include "mem_wb.h"
-#include "dm_.h"
-#include "im_.h"
-#include "wb_.h"
+#include "dm.h"
+#include "im.h"
+#include "wb.h"
 #include "utils.h"
 
 typedef struct cpu_core {
@@ -41,7 +41,6 @@ typedef struct cpu_core {
 
     uint64_t cycle_count;
 } Cpu_core;
-
 
 static inline
 void init_cpu_c(Cpu_core *c) {

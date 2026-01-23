@@ -4,8 +4,8 @@
 
 #ifndef SCCPU_DFF__H
 #define SCCPU_DFF__H
-#include "common_.h"
-#include "gate_.h"
+#include "common.h"
+#include "gate.h"
 
 static inline bit d_latch(const bit d, const bit enable, bit OUT_Q, bit OUT_Q_BRA) {
     const bit S = AND(d, enable);

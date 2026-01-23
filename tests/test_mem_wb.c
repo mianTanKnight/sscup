@@ -11,7 +11,7 @@
 #include "common_test.h"
 #include "../includes/ex_mem.h"
 #include "../includes/mem_wb.h"
-#include "../includes/dm_.h"
+#include "../includes/dm.h"
 
 // ------------------------------------------------------------
 // 本测试假设以下位约定：
