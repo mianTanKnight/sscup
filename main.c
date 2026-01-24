@@ -48,23 +48,18 @@ int main(void) {
         0, 0, 0
     };
 
-    for (int i = 0; i < sizeof(program)/sizeof(uint32_t); i++) {
+    for (int i = 0; i < sizeof(program) / sizeof(uint32_t); i++) {
         word w;
         u32_to_word(program[i], w);
         memcpy(cpu.im.im[i], w, sizeof(word));
     }
     // 4. 启动时钟 (跑 20 个周期看看)
     for (int cycle = 0; cycle < 20; cycle++) {
-        printf("\n--- Cycle %d (CLK=0) ---\n", cycle);
-        falling_edge(&cpu);
-        printf("--- Cycle %d (CLK=1) ---\n", cycle);
-        rising_edge(&cpu);
-        // 可以在这里加个断点或者 sleep
+        cpu_tick(&cpu);
     }
     // 5. 最终检查
     uint32_t r3_val = reg32_read_u32_(&cpu.rf.r3);
     printf("\nFinal Result: R3 = %d (Expected 30)\n", r3_val);
-
 
 
     return 0;

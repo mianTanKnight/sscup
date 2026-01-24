@@ -44,6 +44,7 @@ typedef struct cpu_core {
 
 static inline
 void cpu_dump(const Cpu_core *c);
+
 static inline
 void hazard_unit_evaluate(Cpu_core *c);
 
@@ -69,16 +70,16 @@ static inline void hazard_unit_evaluate(Cpu_core *c) {
     // 2. 生成控制信号 (Glue Logic)
     // 目前策略：遇到跳转就 Flush IF和ID
     c->wire_if_id_ctrl.if_id_flush = branch_taken;
-    c->wire_id_ex_ctrl.id_ex_flush = branch_taken; // 激进策略：连 ID 级也杀掉
+    c->wire_id_ex_ctrl.id_ex_flush = branch_taken;
 
     c->wire_if_id_ctrl.pc_write = 1;
     c->wire_if_id_ctrl.if_id_write = 1;
     c->wire_id_ex_ctrl.id_ex_write = 1;
 }
 
-// Sampling
+
 static inline
-void falling_edge(Cpu_core *c) {
+void cpu_tick(Cpu_core *c) {
     bit overflow_ = 0;
     // ============================================================
     // Phase 0: Combinational Logic Evaluation (CLK = 0)
@@ -108,13 +109,12 @@ void falling_edge(Cpu_core *c) {
     if_id_regs_step(&c->if_id, &c->im, &c->pc,
                     &if_ops_in, &c->wire_if_id_ctrl,
                     &overflow_, 0);
-}
 
-// Store
-static inline
-void rising_edge(Cpu_core *c) {
-    bit overflow_ = 0;
-    const bit mem_we_mask[4] = {1, 1, 1, 1};
+
+    // ============================================================
+    // Phase 0: Combinational Logic Evaluation (CLK = 1)
+    // 目标：Store
+    // ============================================================
 
     // 1. WB (写回 RegFile)
     wb_step(&c->mem_wb, &c->rf, 1);
@@ -128,9 +128,6 @@ void rising_edge(Cpu_core *c) {
     // 4. ID (更新 ID/EX)
     id_ex_regs_step(&c->id_ex, &c->if_id, &c->rf, &c->wire_id_ex_ctrl, 1);
 
-    If_id_pc_ops if_ops_in;
-    if_ops_in.pc_ops_[0] = c->wire_pc_src[0];
-    if_ops_in.pc_ops_[1] = c->wire_pc_src[1];
     // 5. IF (更新 IF/ID 和 PC)
     if_id_regs_step(&c->if_id, &c->im, &c->pc, &if_ops_in, &c->wire_if_id_ctrl, &overflow_, 1);
 
