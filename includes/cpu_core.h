@@ -179,13 +179,13 @@ void cpu_dump(const Cpu_core *c) {
         GET_BIT_OF_REG32(&c->mem_wb.wb_single, 30),
         reg32_read_u32_(&c->mem_wb.mem_read_data),
         reg32_read_u32_(&c->mem_wb.alu_result),
-        GET_BIT_OF_REG32(&c->ex_mem.write_reg_idx, 0),
-        GET_BIT_OF_REG32(&c->ex_mem.write_reg_idx, 1)
+        GET_BIT_OF_REG32(&c->mem_wb.write_reg_idx, 0),
+        GET_BIT_OF_REG32(&c->mem_wb.write_reg_idx, 1)
     );
 
     // General-purpose register
     printf("[General-Purpose-Register Dump]:\n");
-    printf("                                RO:0x%08X\n", reg32_read_u32_(&c->rf.r0));
+    printf("                                R0:0x%08X\n", reg32_read_u32_(&c->rf.r0));
     printf("                                R1:0x%08X\n", reg32_read_u32_(&c->rf.r1));
     printf("                                R2:0x%08X\n", reg32_read_u32_(&c->rf.r2));
     printf("                                R3:0x%08X\n", reg32_read_u32_(&c->rf.r3));
