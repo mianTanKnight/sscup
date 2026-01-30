@@ -9,6 +9,19 @@
 #include "alu.h"
 #include "utils.h"
 
+/**
+ * Ex 在真正进行ALU 会对 input0,input1 和 forwarding_unit_writes
+ * 做选择
+ * Cpu_Core 在判断存在 forwarding_unit 情况时间会使 enable 为 1
+ */
+typedef struct forwarding_unit_writes {
+    // 两个输入回线
+    word input0_forwarding_write;
+    bit i0_enable;
+    word input1_forwarding_write;
+    bit i1_enable;
+} Forwarding_unit_writes;
+
 typedef struct ex_mem_regs {
     Reg32_ mem_single; // mem_read, mem_write
     Reg32_ wb_single; // reg_write, data_src_to_reg
@@ -22,7 +35,6 @@ typedef struct ex_mem_regs {
     Reg32_ write_reg_idx;
 } Ex_mem_regs;
 
-
 static inline void
 init_ex_eme_regs(Ex_mem_regs *regs) {
     init_reg32(&regs->mem_single);
@@ -31,7 +43,6 @@ init_ex_eme_regs(Ex_mem_regs *regs) {
     init_reg32(&regs->write_data);
     init_reg32(&regs->write_reg_idx);
 }
-
 
 /**
  *  hazard 是 ex -> if 的回通电路
@@ -47,8 +58,8 @@ static inline void
 hazard(If_id_pc_ops *ops,
        const pc_ops pc_src, // The head pointer of the array
        word branch_target, // The head pointer of the array
-       If_id_write* if_id_write,
-       Id_ex_write* id_ex_write
+       If_id_write *if_id_write,
+       Id_ex_write *id_ex_write
 ) {
     ops->pc_ops_[0] = pc_src[0];
     ops->pc_ops_[1] = pc_src[1];
@@ -59,18 +70,26 @@ hazard(If_id_pc_ops *ops,
     bit branch_taken = AND(pc_src[0], NOT(pc_src[1]));
     if_id_write->if_id_flush = branch_taken;
     id_ex_write->id_ex_flush = branch_taken;
+}
 
+static inline void
+forwarding_mux(const Forwarding_unit_writes fuw, word input0, word input1) {
+    word_mux_2_1(input0, fuw.input0_forwarding_write,
+                 fuw.i0_enable, input0);
+    word_mux_2_1(input1, fuw.input1_forwarding_write,
+                 fuw.i1_enable, input1);
 }
 
 
 static inline
 void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
-                 Ex_mem_regs *ex_mem_regs,
-                 pc_ops pc_src, // The head pointer of the array
-                 word branch_target, // The head pointer of the array
-                 const bit ex_flush,
-                 bit *overflow,
-                 const bit clk) {
+                      Ex_mem_regs *ex_mem_regs,
+                      const Forwarding_unit_writes *fuw,
+                      pc_ops pc_src, // The head pointer of the array
+                      word branch_target, // The head pointer of the array
+                      const bit ex_flush,
+                      bit *overflow,
+                      const bit clk) {
     // get alu_src ->  IMM by ALU_SRC is 1  else RT
     bit alu_src = GET_ALU_SRC_OF_SIGNALS(&id_ex_regs->decode_signals);
 
@@ -79,10 +98,12 @@ void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
     read_reg32(&id_ex_regs->read_data2, data2_w); // read of R2
     read_reg32(&id_ex_regs->imm_ext, imm_ext_w);
     word_mux_2_1(data2_w, imm_ext_w, alu_src, input1_w);
-
+    //
+    forwarding_mux(*fuw, input0_w, input1_w);
     // alu_ops
     ops alu_ops = {0};
     GET_OPS_OF_SIGNALS(&id_ex_regs->decode_signals, alu_ops);
+
     // alu_result
     word alu_result_w = {0};
     word_alu_(input0_w, input1_w, alu_result_w, alu_ops, overflow);
@@ -101,10 +122,13 @@ void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
     // 算出 branch_target 注意 branch_target 并不是一个寄存器 而是一个32位的导线 立即性
     word imm_ext_lshift2_w = {0};
     word_lshift2(imm_ext_w, imm_ext_lshift2_w);
+
+    // Calculate out branch_target
     word_alu_(pc_push4_w, imm_ext_lshift2_w, branch_target, OPS_ADD_, overflow);
 
     word ret_src = {0};
     // R1 - R2
+    // Check flush by R1 == R2
     word_alu_(input0_w, data2_w, ret_src, OPS_SUB_, overflow);
     const bit branch_signal = GET_BRANCH_OF_SIGNALS(&id_ex_regs->decode_signals);
     const bit is_zero = word_is_zero(ret_src);

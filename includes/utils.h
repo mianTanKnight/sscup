@@ -34,6 +34,16 @@ uint8_t u8_from_byte(const byte b) {
 
 
 static inline
+bit word_eq(const word s, const word s1) {
+    bit ret = 0;
+    for (int i = 0; i < WORD_SIZE; i++) {
+        ret |= (s[i] != s1[i]);
+    }
+    return !ret;
+}
+
+
+static inline
 void u32_from_4byte(const word w, uint8_t *ret) {
     for (int i = 0; i < 4; i++) {
         int v = 0;
@@ -116,12 +126,12 @@ static inline uint32_t enc_r(uint8_t rs, uint8_t rt, uint8_t rd, uint8_t shamt, 
     shamt &= 0x1F;
     funct &= 0x3F;
 
-    return ((uint32_t)op    << 26) |
-           ((uint32_t)rs    << 21) |
-           ((uint32_t)rt    << 16) |
-           ((uint32_t)rd    << 11) |
-           ((uint32_t)shamt << 6)  |
-           ((uint32_t)funct);
+    return ((uint32_t) op << 26) |
+           ((uint32_t) rs << 21) |
+           ((uint32_t) rt << 16) |
+           ((uint32_t) rd << 11) |
+           ((uint32_t) shamt << 6) |
+           ((uint32_t) funct);
 }
 
 // ------------------------------------------------------------
@@ -133,12 +143,12 @@ static inline uint32_t enc_i(uint8_t opcode, uint8_t rs, uint8_t rt, int16_t imm
     rs &= 0x3;
     rt &= 0x3;
     // imm 是有符号的，强转 uint16 截断低16位
-    uint16_t imm_u = (uint16_t)imm;
+    uint16_t imm_u = (uint16_t) imm;
 
-    return ((uint32_t)opcode << 26) |
-           ((uint32_t)rs     << 21) |
-           ((uint32_t)rt     << 16) |
-           ((uint32_t)imm_u);
+    return ((uint32_t) opcode << 26) |
+           ((uint32_t) rs << 21) |
+           ((uint32_t) rt << 16) |
+           ((uint32_t) imm_u);
 }
 
 // ------------------------------------------------------------
@@ -149,7 +159,7 @@ static inline uint32_t enc_j(uint8_t opcode, uint32_t address) {
     opcode &= 0x3F;
     address &= 0x03FFFFFF; // 只取低 26 位
 
-    return ((uint32_t)opcode << 26) |
+    return ((uint32_t) opcode << 26) |
            address;
 }
 
@@ -159,6 +169,7 @@ static inline uint32_t enc_j(uint8_t opcode, uint32_t address) {
 static void u32_to_word(uint32_t v, word w) {
     for (int i = 0; i < 32; i++) w[i] = (v >> (31 - i)) & 1u;
 }
+
 static uint32_t word_to_u32(const word w) {
     uint32_t v = 0;
     for (int i = 0; i < 32; i++) if (w[i]) v |= (1u << (31 - i));
