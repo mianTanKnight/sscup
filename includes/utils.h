@@ -184,6 +184,24 @@ static void mask_from_u4(uint32_t m, bit be[4]) {
     be[3] = (m >> 0) & 1u;
 }
 
+static inline void u32_to_bin(uint32_t value, char *output, int use_separator) {
+    if (output == NULL) {
+        return;
+    }
+    char temp[40] = {0};
+    int temp_idx = 0;
+    for (int i = 31; i >= 0; i--) {
+        uint32_t bit = (value >> i) & 0x01;
+        temp[temp_idx++] = bit ? '1' : '0';
+        if (use_separator && (i % 8 == 0) && (i != 0)) {
+            temp[temp_idx++] = ' ';
+        }
+    }
+    strncpy(output, temp, sizeof(temp) - 1);
+    output[sizeof(temp) - 1] = '\0'; // 确保字符串终止
+}
+
+
 static inline void dis_asm(const uint32_t inst, char *buffer) {
     const uint32_t op = (inst >> 26) & 0x3F;
     const uint32_t rs = (inst >> 21) & 0x1F; //只用低2位，但解码看5位
