@@ -36,7 +36,7 @@ typedef struct ex_mem_regs {
 } Ex_mem_regs;
 
 static inline void
-init_ex_eme_regs(Ex_mem_regs *regs) {
+init_ex_mem_regs(Ex_mem_regs *regs) {
     init_reg32(&regs->mem_single);
     init_reg32(&regs->wb_single);
     init_reg32(&regs->alu_result);

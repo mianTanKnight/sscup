@@ -86,7 +86,7 @@ static int test_penetrate_and_latch(void) {
     Ex_mem_regs exm;
     Mem_wb_regs mw;
     Dm_ dm;
-    init_ex_eme_regs(&exm);
+    init_ex_mem_regs(&exm);
     init_mem_wb_regs(&mw);
     init_dm_(&dm);
 
@@ -137,7 +137,7 @@ static int test_store_gating_and_disable(void) {
     Ex_mem_regs exm;
     Mem_wb_regs mw;
     Dm_ dm;
-    init_ex_eme_regs(&exm);
+    init_ex_mem_regs(&exm);
     init_mem_wb_regs(&mw);
     init_dm_(&dm);
 
@@ -206,7 +206,7 @@ static int test_store_byte_masks(void) {
     Ex_mem_regs exm;
     Mem_wb_regs mw;
     Dm_ dm;
-    init_ex_eme_regs(&exm);
+    init_ex_mem_regs(&exm);
     init_mem_wb_regs(&mw);
     init_dm_(&dm);
 
@@ -264,7 +264,7 @@ static int test_unaligned_forbidden_policy(void) {
     Ex_mem_regs exm;
     Mem_wb_regs mw;
     Dm_ dm;
-    init_ex_eme_regs(&exm);
+    init_ex_mem_regs(&exm);
     init_mem_wb_regs(&mw);
     init_dm_(&dm);
 
@@ -312,7 +312,7 @@ static int test_last_word_boundary(void) {
     Ex_mem_regs exm;
     Mem_wb_regs mw;
     Dm_ dm;
-    init_ex_eme_regs(&exm);
+    init_ex_mem_regs(&exm);
     init_mem_wb_regs(&mw);
     init_dm_(&dm);
 

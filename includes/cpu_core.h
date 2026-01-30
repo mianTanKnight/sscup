@@ -62,7 +62,7 @@ void init_cpu_c(Cpu_core *c) {
     init_pc32(&c->pc);
     init_if_id_regs(&c->if_id);
     init_id_ex_regs(&c->id_ex);
-    init_ex_eme_regs(&c->ex_mem);
+    init_ex_mem_regs(&c->ex_mem);
     init_mem_wb_regs(&c->mem_wb);
     init_reg32file(&c->rf);
     init_dm_(&c->dm);

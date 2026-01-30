@@ -92,7 +92,7 @@ void init_cpu(Cpu_t *c) {
     init_pc32(&c->pc);
     init_if_id_regs(&c->ifid);
     init_id_ex_regs(&c->idex);
-    init_ex_eme_regs(&c->exmem);
+    init_ex_mem_regs(&c->exmem);
     init_reg32file(&c->rf);
     memset(&c->pc_ops, 0, sizeof(If_id_pc_ops));
     memset(&c->ifid_write, 0, sizeof(If_id_write));
@@ -131,9 +131,9 @@ static inline void cpu_phase(Cpu_t *c, const Im_t *im, bit clk) {
     c->pc_ops.pc_ops_[1] = 0;
     c->ifid_write.if_id_flush = 0;
     c->id_ex_write.id_ex_flush = 0;
-
+    Forwarding_unit_writes forwarding_unit_writes = {0};
     // Reads from ID/EX.Q
-    ex_mem_regs_step(&c->idex, &c->exmem, pc_src, branch_target, 0, &overflow, clk);
+    ex_mem_regs_step(&c->idex, &c->exmem, &forwarding_unit_writes, pc_src, branch_target, 0, &overflow, clk);
     // hazard
     hazard_comb_c(c, pc_src, branch_target);
 

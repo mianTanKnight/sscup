@@ -65,8 +65,9 @@ static inline void idex_load_minimal(Id_ex_regs *idex,
 static inline void exmem_tick(const Id_ex_regs *idex, Ex_mem_regs *exmem,
                               pc_ops pc_src, word branch_target,
                               bit ex_flush, bit *overflow) {
-    ex_mem_regs_step(idex, exmem, pc_src, branch_target, ex_flush, overflow, 0);
-    ex_mem_regs_step(idex, exmem, pc_src, branch_target, ex_flush, overflow, 1);
+    Forwarding_unit_writes forwarding_unit_writes = {0};
+    ex_mem_regs_step(idex, exmem, &forwarding_unit_writes, pc_src, branch_target, ex_flush, overflow, 0);
+    ex_mem_regs_step(idex, exmem, &forwarding_unit_writes, pc_src, branch_target, ex_flush, overflow, 1);
 }
 
 // -------------------------
@@ -113,15 +114,16 @@ static int test_exmem_rtype_add_basic(void) {
     pc_ops pc_src = {0, 0};
     word branch_target = {0};
     bit ov = 0;
+    Forwarding_unit_writes forwarding_unit_writes = {0};
 
     // 注意：pc_src/branch_target 是导线输出，不需要等上沿
-    ex_mem_regs_step(&idex, &exmem, pc_src, branch_target, /*ex_flush*/0, &ov, 0);
+    ex_mem_regs_step(&idex, &exmem, &forwarding_unit_writes, pc_src, branch_target, /*ex_flush*/0, &ov, 0);
 
     ASSERT_EQ_BIT("pc_src[0] == 0 (no branch)", pc_src[0], 0);
     ASSERT_EQ_BIT("pc_src[1] == 0", pc_src[1], 0);
 
     // 提交锁存
-    ex_mem_regs_step(&idex, &exmem, pc_src, branch_target, /*ex_flush*/0, &ov, 1);
+    ex_mem_regs_step(&idex, &exmem, &forwarding_unit_writes, pc_src, branch_target, /*ex_flush*/0, &ov, 1);
 
     uint32_t alu_res = reg32_read_u32(&exmem.alu_result);
     uint32_t wdata = reg32_read_u32(&exmem.write_data);
@@ -231,15 +233,17 @@ static int test_exmem_branch_taken_pc_feedback(void) {
     word branch_target = {0};
     bit ov = 0;
 
+    Forwarding_unit_writes forwarding_unit_writes = {0};
+
     // 在 clk=0 就应当稳定输出 pc_src/branch_target（导线）
-    ex_mem_regs_step(&idex, &exmem, pc_src, branch_target, /*ex_flush*/0, &ov, 0);
+    ex_mem_regs_step(&idex, &exmem, &forwarding_unit_writes, pc_src, branch_target, /*ex_flush*/0, &ov, 0);
 
     ASSERT_EQ_BIT("pc_src[0]==1 (BRANCH_TARGET)", pc_src[0], 1);
     ASSERT_EQ_BIT("pc_src[1]==0 (BRANCH_TARGET)", pc_src[1], 0);
     ASSERT_EQ_U32("branch_target == 16", u32_from_word_local(branch_target), 16);
 
     // 锁存一次，确认 bubble/副作用信号不应被写（这里 reg_write=0）
-    ex_mem_regs_step(&idex, &exmem, pc_src, branch_target, /*ex_flush*/0, &ov, 1);
+    ex_mem_regs_step(&idex, &exmem, &forwarding_unit_writes, pc_src, branch_target, /*ex_flush*/0, &ov, 1);
 
     return 0;
 }
@@ -285,8 +289,8 @@ static int test_exmem_branch_not_taken(void) {
     pc_ops pc_src = {0, 0};
     word branch_target = {0};
     bit ov = 0;
-
-    ex_mem_regs_step(&idex, &exmem, pc_src, branch_target, /*ex_flush*/0, &ov, 0);
+    Forwarding_unit_writes forwarding_unit_writes = {0};
+    ex_mem_regs_step(&idex, &exmem, &forwarding_unit_writes, pc_src, branch_target, /*ex_flush*/0, &ov, 0);
 
     ASSERT_EQ_BIT("pc_src[0]==0", pc_src[0], 0);
     ASSERT_EQ_BIT("pc_src[1]==0", pc_src[1], 0);
@@ -355,6 +359,7 @@ static int test_exmem_flush_bubble(void) {
 
     return 0;
 }
+
 //
 // int main_(void) {
 //     int rc = 0;
