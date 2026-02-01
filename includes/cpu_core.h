@@ -234,7 +234,7 @@ static inline
 void cpu_dump(const Cpu_core *c) {
     printf(
         "\n================================================CpuCoreDump================================================\n");
-    printf("\n=======Cycle %lu=======\n", c->cycle_count);
+    printf("\n=======Cycle %llu=======\n", c->cycle_count);
     // IF
     const uint32_t instr = reg32_read_u32_(&c->if_id.instr);
     char buffer[1024];
