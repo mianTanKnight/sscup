@@ -15,11 +15,13 @@
  * Cpu_Core 在判断存在 forwarding_unit 情况时间会使 enable 为 1
  */
 typedef struct forwarding_unit_writes {
-    // 两个输入回线
+    // 三个输入回线 input0, input1, sw
     word input0_forwarding_write;
     bit i0_enable;
     word input1_forwarding_write;
     bit i1_enable;
+    word sw_forwarding_write;
+    bit sw_enable;
 } Forwarding_unit_writes;
 
 typedef struct ex_mem_regs {
@@ -80,6 +82,15 @@ forwarding_mux(const Forwarding_unit_writes fuw, word input0, word input1) {
                  fuw.i1_enable, input1);
 }
 
+static inline void forwarding_mux_sw(const Forwarding_unit_writes fuw,
+                                     const Id_ex_regs *id_ex_regs,
+                                     word data2_w /*inout*/) {
+    // get mem_write state
+    const bit is_store = GET_MEM_WRITE_OF_SIGNALS(&id_ex_regs->decode_signals);
+    word_mux_2_1(data2_w, fuw.sw_forwarding_write,
+                 AND(is_store, fuw.sw_enable), data2_w);
+}
+
 
 static inline
 void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
@@ -98,8 +109,9 @@ void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
     read_reg32(&id_ex_regs->read_data2, data2_w); // read of R2
     read_reg32(&id_ex_regs->imm_ext, imm_ext_w);
     word_mux_2_1(data2_w, imm_ext_w, alu_src, input1_w);
-    //
-    forwarding_mux(*fuw, input0_w, input1_w);
+
+    forwarding_mux(*fuw, input0_w, input1_w); // forwarding input0, input1
+    forwarding_mux_sw(*fuw, id_ex_regs, data2_w); // forwarding sw
     // alu_ops
     ops alu_ops = {0};
     GET_OPS_OF_SIGNALS(&id_ex_regs->decode_signals, alu_ops);
@@ -138,7 +150,7 @@ void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
     // pc_src[1] default zero
     pc_src[1] = 0;
 
-    bit reg_dst = GET_REG_DST_OF_SIGNALS(&id_ex_regs->decode_signals);
+    const bit reg_dst = GET_REG_DST_OF_SIGNALS(&id_ex_regs->decode_signals);
     word write_final_reg_idx = {0};
     word rt_idx_w = {0}, rd_idx_w = {0};
     read_reg32(&id_ex_regs->rt_idx, rt_idx_w);

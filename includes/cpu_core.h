@@ -211,7 +211,7 @@ void forwarding_unit(const Id_ex_regs *id_ex_regs,
     word_mux_2_1(mem_alu_result, mem_read_data, mem_to_reg, mem_final_result);
     const bit mem_rs_eq = AND(word_eq(rs_idx, mem_rd_idx), mem_reg_write);
     const bit mem_rt_eq = AND(AND(word_eq(rt_idx, mem_rd_idx), exists_rt), mem_reg_write);
-
+    const bit mem_sw_eq = AND(word_eq(rt_idx, mem_rd_idx), mem_reg_write);
     // EX
     const bit ex_reg_write = GET_BIT_OF_REG32(&ex_mem_regs->wb_single, 31);
     word ex_rd_idx = {0};
@@ -220,14 +220,19 @@ void forwarding_unit(const Id_ex_regs *id_ex_regs,
     read_reg32(&ex_mem_regs->alu_result, ex_alu_result);
     const bit ex_rs_eq = AND(word_eq(rs_idx, ex_rd_idx), ex_reg_write);
     const bit ex_rt_eq = AND(AND(word_eq(rt_idx, ex_rd_idx), exists_rt), ex_reg_write);
+    const bit ex_sw_eq = AND(word_eq(rt_idx, ex_rd_idx), ex_reg_write);
 
     //rs
     fuw->i0_enable = OR(ex_rs_eq, mem_rs_eq);
     word_mux_2_1(mem_final_result, ex_alu_result, ex_rs_eq, fuw->input0_forwarding_write);
 
-    //
+    //rt
     fuw->i1_enable = OR(ex_rt_eq, mem_rt_eq);
     word_mux_2_1(mem_final_result, ex_alu_result, ex_rt_eq, fuw->input1_forwarding_write);
+
+    //sw
+    fuw->sw_enable = OR(ex_sw_eq, mem_sw_eq);
+    word_mux_2_1(mem_final_result, ex_alu_result, ex_sw_eq, fuw->sw_forwarding_write);
 }
 
 static inline
