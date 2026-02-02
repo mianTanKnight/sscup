@@ -78,7 +78,7 @@ uint32_t u32_from_word(const word b) {
 static inline
 bit word_is_zero(const word b) {
     bit mask = 0;
-    for (int i = 0; i < BYTE_SIZE; i++) {
+    for (int i = 0; i < WORD_SIZE; i++) {
         mask |= b[i];
     }
     return !mask;
