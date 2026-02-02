@@ -94,86 +94,142 @@ static inline void forwarding_mux_sw(const Forwarding_unit_writes fuw,
 
 static inline
 void ex_mem_regs_step(const Id_ex_regs *id_ex_regs,
-                      Ex_mem_regs *ex_mem_regs,
-                      const Forwarding_unit_writes *fuw,
-                      pc_ops pc_src, // The head pointer of the array
-                      word branch_target, // The head pointer of the array
-                      const bit ex_flush,
-                      bit *overflow,
-                      const bit clk) {
-    // get alu_src ->  IMM by ALU_SRC is 1  else RT
-    bit alu_src = GET_ALU_SRC_OF_SIGNALS(&id_ex_regs->decode_signals);
+                       Ex_mem_regs *ex_mem_regs,
+                       const Forwarding_unit_writes *fuw,
+                       pc_ops pc_src,
+                       word branch_target,
+                       const bit ex_flush,
+                       bit *overflow,
+                       const bit clk
+) {
+    // =========================================================================
+    // EX Stage (Combinational Wires)
+    // =========================================================================
+    // clk = 0 ; 计算wire 准备 D端
+    // clk =1  ; 更新 Q
 
-    word input0_w = {0}, input1_w = {0}, data2_w = {0}, imm_ext_w = {0};
-    read_reg32(&id_ex_regs->read_data1, input0_w); // read of R1
-    read_reg32(&id_ex_regs->read_data2, data2_w); // read of R2
-    read_reg32(&id_ex_regs->imm_ext, imm_ext_w);
-    word_mux_2_1(data2_w, imm_ext_w, alu_src, input1_w);
+    // Read Control Bits (from ID/EX decode_signals)
+    const bit alu_src = GET_ALU_SRC_OF_SIGNALS(&id_ex_regs->decode_signals);   // 1: imm, 0: rt
+    const bit reg_dst = GET_REG_DST_OF_SIGNALS(&id_ex_regs->decode_signals);   // 1: rd, 0: rt
+    const bit mem_read  = GET_MEM_READ_OF_SIGNALS(&id_ex_regs->decode_signals);
+    const bit mem_write = GET_MEM_WRITE_OF_SIGNALS(&id_ex_regs->decode_signals);
+    const bit reg_write = GET_REG_WRITE_OF_SIGNALS(&id_ex_regs->decode_signals);
+    const bit mem_to_reg= GET_DATA_SRC_TO_REG_OF_SIGNALS(&id_ex_regs->decode_signals);
+    const bit branch    = GET_BRANCH_OF_SIGNALS(&id_ex_regs->decode_signals);
 
-    forwarding_mux(*fuw, input0_w, input1_w); // forwarding input0, input1
-    forwarding_mux_sw(*fuw, id_ex_regs, data2_w); // forwarding sw
-    // alu_ops
+    // ALU ops
     ops alu_ops = {0};
     GET_OPS_OF_SIGNALS(&id_ex_regs->decode_signals, alu_ops);
 
-    // alu_result
+    // -----------------------------
+    // 1) Read Data Wires (from ID/EX pipeline regs)
+    // -----------------------------
+    // rs_val / rt_val：这是“寄存器读出来的原始值”
+    // imm_ext：符号扩展后的立即数（不需要 forwarding）
+    word rs_val  = {0};
+    word rt_val  = {0};
+    word imm_ext = {0};
+    read_reg32(&id_ex_regs->read_data1, rs_val);
+    read_reg32(&id_ex_regs->read_data2, rt_val);
+    read_reg32(&id_ex_regs->imm_ext,    imm_ext);
+
+    // -----------------------------
+    // 2) Apply Forwarding (only for register operands)
+    // -----------------------------
+    // forwarding 的语义是“把最新值劫持回 EX 的输入端”
+    // 我们对 rs_val / rt_val 做劫持（rt_val 代表寄存器 RT 的值）
+    forwarding_mux(*fuw, rs_val, rt_val);
+
+    // SW 的写数据也是 RT，但它有独立的 sw_forwarding 通路（load/use 等未来扩展更清晰）
+    forwarding_mux_sw(*fuw, id_ex_regs, rt_val);
+
+    // -----------------------------
+    // 3) Build ALU inputs
+    // -----------------------------
+    // ALU_A = rs_val
+    // ALU_B = mux(rt_val, imm_ext, alu_src)
+    word alu_b = {0};
+    word_mux_2_1(rt_val, imm_ext, alu_src, alu_b);
+
+    // -----------------------------
+    // 4) ALU Execution
+    // -----------------------------
     word alu_result_w = {0};
-    word_alu_(input0_w, input1_w, alu_result_w, alu_ops, overflow);
+    word_alu_(rs_val, alu_b, alu_result_w, alu_ops, overflow);
 
-    word mem_single_w = {0}, wb_single_w = {0};
-    mem_single_w[INST_WORD(31)] = GET_MEM_READ_OF_SIGNALS(&id_ex_regs->decode_signals);
-    mem_single_w[INST_WORD(30)] = GET_MEM_WRITE_OF_SIGNALS(&id_ex_regs->decode_signals);
+    // -----------------------------
+    // 5) Branch Target & Branch Decision (BEQ)
+    // -----------------------------
+    // branch_target = pc_plus4 + (imm_ext << 2)
+    word pc_plus4 = {0};
+    read_reg32(&id_ex_regs->pc_plus4, pc_plus4);
 
-    // wb：reg_write 放 bit31，mem_to_reg 放 bit30
-    wb_single_w[INST_WORD(31)] = GET_REG_WRITE_OF_SIGNALS(&id_ex_regs->decode_signals);
-    wb_single_w[INST_WORD(30)] = GET_DATA_SRC_TO_REG_OF_SIGNALS(&id_ex_regs->decode_signals);
+    word imm_lshift2 = {0};
+    word_lshift2(imm_ext, imm_lshift2);
+    word_alu_(pc_plus4, imm_lshift2, branch_target, OPS_ADD_, overflow);
 
-    // id_ex_regs.pc_plus4 已经是 + 4
-    word pc_push4_w = {0};
-    read_reg32(&id_ex_regs->pc_plus4, pc_push4_w);
-    // 算出 branch_target 注意 branch_target 并不是一个寄存器 而是一个32位的导线 立即性
-    word imm_ext_lshift2_w = {0};
-    word_lshift2(imm_ext_w, imm_ext_lshift2_w);
+    // BEQ compare 必须用“寄存器对”(rs_val vs rt_val)，且这两个值已经吃过 forwarding
+    word diff = {0};
+    word_alu_(rs_val, rt_val, diff, OPS_SUB_, overflow);
+    const bit is_zero = word_is_zero(diff);
 
-    // Calculate out branch_target
-    word_alu_(pc_push4_w, imm_ext_lshift2_w, branch_target, OPS_ADD_, overflow);
-
-    word ret_src = {0};
-    // R1 - R2
-    // Check flush by R1 == R2
-    word_alu_(input0_w, data2_w, ret_src, OPS_SUB_, overflow);
-    const bit branch_signal = GET_BRANCH_OF_SIGNALS(&id_ex_regs->decode_signals);
-    const bit is_zero = word_is_zero(ret_src);
-    // const static pc_ops BRANCH_TARGET = {1, 0};
-    // flush 会丢弃指令 当然也会丢弃当条 ?
-    pc_src[0] = AND(AND(branch_signal, is_zero), NOT(ex_flush));
-    // pc_src[1] default zero
+    // pc_src: 10 表示 branch
+    // ex_flush=1 时必须压掉分支（异常/kill 场景），否则会错误改 PC
+    pc_src[0] = AND(AND(branch, is_zero), NOT(ex_flush));
     pc_src[1] = 0;
 
-    const bit reg_dst = GET_REG_DST_OF_SIGNALS(&id_ex_regs->decode_signals);
-    word write_final_reg_idx = {0};
-    word rt_idx_w = {0}, rd_idx_w = {0};
-    read_reg32(&id_ex_regs->rt_idx, rt_idx_w);
-    read_reg32(&id_ex_regs->rd_idx, rd_idx_w);
-    word_mux_2_1(rt_idx_w, rd_idx_w, reg_dst, write_final_reg_idx);
+    // -----------------------------
+    // 6) Build EX/MEM control bundles + destination register index
+    // -----------------------------
+    // mem_single: bit31=mem_read, bit30=mem_write
+    word mem_single_w = {0};
+    mem_single_w[INST_WORD(31)] = mem_read;
+    mem_single_w[INST_WORD(30)] = mem_write;
 
-    word mem_single_in = {0};
-    word_mux_2_1(mem_single_w, WORD_ZERO, ex_flush, mem_single_in);
-    word wb_single_in = {0};
-    word_mux_2_1(wb_single_w, WORD_ZERO, ex_flush, wb_single_in);
-    word alu_result_in = {0};
-    word_mux_2_1(alu_result_w, WORD_ZERO, ex_flush, alu_result_in);
-    word write_data_in = {0};
-    word_mux_2_1(data2_w, WORD_ZERO, ex_flush, write_data_in);
-    word write_reg_idx_in = {0};
-    word_mux_2_1(write_final_reg_idx, WORD_ZERO, ex_flush, write_reg_idx_in);
+    // wb_single: bit31=reg_write, bit30=mem_to_reg
+    word wb_single_w = {0};
+    wb_single_w[INST_WORD(31)] = reg_write;
+    wb_single_w[INST_WORD(30)] = mem_to_reg;
 
+    // dest reg idx = mux(rt_idx, rd_idx, reg_dst)
+    word rt_idx = {0}, rd_idx = {0}, dst_idx = {0};
+    read_reg32(&id_ex_regs->rt_idx, rt_idx);
+    read_reg32(&id_ex_regs->rd_idx, rd_idx);
+    word_mux_2_1(rt_idx, rd_idx, reg_dst, dst_idx);
+
+    // write_data: 只对 SW 有意义，但即使对非 SW，mem_write=0 也无副作用
+    // 我们把“forwarded 后的 rt_val”作为 store 数据送入 EX/MEM
+    word write_data_w = {0};
+    connect(rt_val, write_data_w);
+
+
+    // -----------------------------
+    // 7) Apply ex_flush squash (kill side effects)
+    // -----------------------------
+    // ex_flush 时必须保证：写寄存器 / 写内存 / 读内存 等副作用都被清掉
+    // 控制信号清零，数据也可以清零（便于调试）
+    word mem_single_in   = {0};
+    word wb_single_in    = {0};
+    word alu_result_in   = {0};
+    word write_data_in   = {0};
+    word write_reg_idx_in= {0};
+
+    word_mux_2_1(mem_single_w,    WORD_ZERO, ex_flush, mem_single_in);
+    word_mux_2_1(wb_single_w,     WORD_ZERO, ex_flush, wb_single_in);
+    word_mux_2_1(alu_result_w,    WORD_ZERO, ex_flush, alu_result_in);
+    word_mux_2_1(write_data_w,    WORD_ZERO, ex_flush, write_data_in);
+    word_mux_2_1(dst_idx,         WORD_ZERO, ex_flush, write_reg_idx_in);
+
+    // =========================================================================
+    // EX/MEM Pipeline Registers Latch (Sequential)
+    // =========================================================================
     word out = {0};
-    reg32_step(&ex_mem_regs->mem_single, 1, mem_single_in, out, clk);
-    reg32_step(&ex_mem_regs->wb_single, 1, wb_single_in, out, clk);
-    reg32_step(&ex_mem_regs->alu_result, 1, alu_result_in, out, clk);
-    reg32_step(&ex_mem_regs->write_data, 1, write_data_in, out, clk);
+    reg32_step(&ex_mem_regs->mem_single,    1, mem_single_in,    out, clk);
+    reg32_step(&ex_mem_regs->wb_single,     1, wb_single_in,     out, clk);
+    reg32_step(&ex_mem_regs->alu_result,    1, alu_result_in,    out, clk);
+    reg32_step(&ex_mem_regs->write_data,    1, write_data_in,    out, clk);
     reg32_step(&ex_mem_regs->write_reg_idx, 1, write_reg_idx_in, out, clk);
+
 }
 
 #endif //SCCPU_EX_MEM_H

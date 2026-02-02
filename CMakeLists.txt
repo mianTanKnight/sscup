@@ -32,4 +32,5 @@ add_executable(sccpu main.c
         includes/cpu_core.h
         includes/utils.h
         tests/test_dff_contract.c
+        tests/test_beq_forwarding.c
 )
