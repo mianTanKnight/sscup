@@ -63,12 +63,22 @@ bit dm_write(Dm_ *dm, word address, word data, const bit byte_enable_mask[4], co
     return 0;
 }
 
+static inline bit dm_write_u32_local(Dm_ *dm, uint32_t addr_u32, uint32_t data_u32,
+                                    const bit mask[4], bit we, bit clk)
+{
+    word addr = {0}, data = {0};
+    word_from_u32(addr_u32, addr);
+    word_from_u32(data_u32, data);
+    return dm->m_write(dm, addr, data, mask, we, clk);
+}
+
 static inline
 void init_dm_(Dm_ *dm) {
     memset(dm->memory, 0, DEFAULT_SIZE);
     dm->m_read = dm_read;
     dm->m_write = dm_write;
 }
+
 
 
 #endif //SCCPU_DM_H

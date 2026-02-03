@@ -58,14 +58,6 @@ static inline uint32_t dm_read_u32_local(Dm_ *dm, uint32_t addr_u32, bit *err) {
     return u32_from_word_local(ret);
 }
 
-static inline bit dm_write_u32_local(Dm_ *dm, uint32_t addr_u32, uint32_t data_u32,
-                                    const bit mask[4], bit we, bit clk)
-{
-    word addr = {0}, data = {0};
-    word_from_u32(addr_u32, addr);
-    word_from_u32(data_u32, data);
-    return dm->m_write(dm, addr, data, mask, we, clk);
-}
 
 // two-stage 调用一个 MEM/WB step（严格 clk=0 + clk=1）
 static inline void memwb_tick(const Ex_mem_regs *exm,

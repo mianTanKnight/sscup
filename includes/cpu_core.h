@@ -79,12 +79,13 @@ static inline void hazard_unit_evaluate(Cpu_core *c) {
     const bit branch_taken = AND(c->wire_pc_src[0], NOT(c->wire_pc_src[1]));
     // 2. 生成控制信号 (Glue Logic)
     // 目前策略：遇到跳转就 Flush IF和ID
-    c->wire_if_id_ctrl.if_id_flush = branch_taken;
-    c->wire_id_ex_ctrl.id_ex_flush = branch_taken;
-
     c->wire_if_id_ctrl.pc_write = 1;
     c->wire_if_id_ctrl.if_id_write = 1;
     c->wire_id_ex_ctrl.id_ex_write = 1;
+
+    c->wire_if_id_ctrl.if_id_flush = branch_taken;
+    c->wire_id_ex_ctrl.id_ex_flush = branch_taken;
+
 }
 
 
