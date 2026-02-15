@@ -78,7 +78,7 @@ uint32_t u32_from_word(const word b) {
 static inline
 bit word_is_zero(const word b) {
     bit mask = 0;
-    for (int i = 0; i < BYTE_SIZE; i++) {
+    for (int i = 0; i < WORD_SIZE; i++) {
         mask |= b[i];
     }
     return !mask;
@@ -105,12 +105,12 @@ static inline uint32_t enc_addi(uint8_t rt, uint8_t rs, int16_t imm) {
 }
 
 static inline uint32_t enc_beq(uint8_t rs, uint8_t rt, int16_t imm) {
-    // OP_BEQ = 0b000100
-    return ((uint32_t) OP_BEQ << 26)
-           | ((uint32_t) (rs & 3) << 21)
-           | ((uint32_t) (rt & 3) << 16)
-           | ((uint16_t) imm);
+    return ((uint32_t)OP_BEQ << 26)
+         | ((uint32_t)rs << 21)
+         | ((uint32_t)rt << 16)
+         | ((uint16_t)imm);
 }
+
 
 // ------------------------------------------------------------
 // 编码 R-Type 指令

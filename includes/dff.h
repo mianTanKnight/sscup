@@ -18,12 +18,6 @@ static inline bit d_latch(const bit d, const bit enable, bit OUT_Q, bit OUT_Q_BR
         stab = AND(NOT(XOR(NEXT_Q, OUT_Q)), NOT(XOR(NEXT_OUT_Q_BRA, OUT_Q_BRA)));
         OUT_Q = mux2_1(NEXT_Q, OUT_Q, stab);
         OUT_Q_BRA = mux2_1(NEXT_OUT_Q_BRA, OUT_Q_BRA, stab);
-        // if (NEXT_Q == OUT_Q && NEXT_OUT_Q_BRA == OUT_Q_BRA) {
-        //     stab = 1;
-        // } else {
-        //     OUT_Q = NEXT_Q;
-        //     OUT_Q_BRA = NEXT_OUT_Q_BRA;
-        // }
     }
     return OUT_Q;
 }
