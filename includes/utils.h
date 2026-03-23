@@ -176,6 +176,26 @@ static uint32_t word_to_u32(const word w) {
     return v;
 }
 
+// alias: word_from_u32 == u32_to_word (used by dm.h and tests)
+static inline void word_from_u32(uint32_t v, word w) {
+    u32_to_word(v, w);
+}
+
+// write u32 to reg32 (two-phase: clk=0 sample, clk=1 commit)
+static inline void reg32_write_u32(Reg32_ *r, uint32_t v) {
+    word din = {0}, out = {0};
+    word_from_u32(v, din);
+    reg32_step(r, 1, din, out, 0);
+    reg32_step(r, 1, din, out, 1);
+}
+
+// read u32 from reg32
+static inline uint32_t reg32_read_u32(const Reg32_ *r) {
+    word w = {0};
+    read_reg32(r, w);
+    return word_to_u32(w);
+}
+
 static void mask_from_u4(uint32_t m, bit be[4]) {
     // be[0] controls highest byte, be[3] controls lowest byte
     be[0] = (m >> 3) & 1u;

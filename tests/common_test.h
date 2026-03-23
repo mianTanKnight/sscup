@@ -1,131 +1,128 @@
 //
-// Created by wenshen on 2026/1/9.
+// common_test.h - Unified test infrastructure for SCCPU
+// All test files should include this as their single test utility header.
 //
+
 #ifndef SCCPU_COMMON_TEST_H
 #define SCCPU_COMMON_TEST_H
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include "../includes/common.h"
-#include "../includes/reg.h"
-#include "../includes/gate.h"
-#include "../includes/pc.h"
-#include "../includes/decoder.h"
-#include "../includes/if_id.h"
-#include "../includes/id_ex.h"
-#include "../includes/ex_mem.h"
-#include "../includes/im.h"
 
-// 约定：word[0] 是 MSB，word[31] 是 LSB（与你 INST_BIT/INST_WORD 宏一致）
-static inline void word_zero(word w) {
-    for (int i = 0; i < WORD_SIZE; i++) w[i] = 0;
-}
+// Production headers (utils.h pulls in common.h, reg.h, isa.h, etc.)
+#include "../includes/utils.h"
 
-static inline uint32_t u32_from_word_test(const word w) {
-    uint32_t v = 0;
-    for (int i = 0; i < WORD_SIZE; i++) {
-        if (w[i]) v |= (1u << (WORD_SIZE - 1 - i));
-    }
-    return v;
-}
+// ======================== Test Result Tracking ========================
 
-static inline void word_from_u32(uint32_t v, word w) {
-    for (int i = 0; i < WORD_SIZE; ++i) {
-        int bit_index = (WORD_SIZE - 1 - i); // i=0->bit31, i=31->bit0
-        w[i] = (v >> bit_index) & 1u;
-    }
-}
+static int _test_pass_count = 0;
+static int _test_fail_count = 0;
 
-static inline uint32_t u32_from_word_local(const word w) {
-    uint32_t v = 0;
-    for (int i = 0; i < WORD_SIZE; ++i) {
-        if (w[i]) {
-            v |= (1u << (WORD_SIZE - 1 - i));
-        }
-    }
-    return v;
-}
+#define PASS(msg) do { \
+    printf("[PASS] %s\n", (msg)); \
+    _test_pass_count++; \
+} while (0)
 
-static inline void zero_word(word w) {
-    for (int i = 0; i < WORD_SIZE; ++i) w[i] = 0;
-}
-
-static inline void reg32_write_u32(Reg32_ *r, uint32_t v) {
-    word din = {0};
-    word out = {0};
-    word_from_u32(v, din);
-    reg32_step(r, 1, din, out, 0);
-    reg32_step(r, 1, din, out, 1);
-}
-
-static inline uint32_t reg32_read_u32(const Reg32_ *r) {
-    word w = {0};
-    read_reg32((Reg32_ *) r, w);
-    return u32_from_word_local(w);
-}
-
-static inline void print_word_hex(const word w) {
-    printf("0x%08X", (unsigned) u32_from_word_local(w));
-}
-
-static inline void read_pc_u32(Pc32_ *pc, uint32_t *out) {
-    word w = {0};
-    read_reg32(&pc->reg32, w);
-    *out = u32_from_word_local(w);
-}
-
-static inline void read_ifid_instr_u32(If_id_regs *r, uint32_t *out) {
-    word w = {0};
-    read_reg32(&r->instr, w);
-    *out = u32_from_word_local(w);
-}
-
-static inline void read_ifid_pc4_u32(If_id_regs *r, uint32_t *out) {
-    word w = {0};
-    read_reg32(&r->pc_plus4, w);
-    *out = u32_from_word_local(w);
-}
-
-static inline void im_set_u32(Im_t *im, uint32_t index, uint32_t inst) {
-    word_from_u32(inst, im->im[index]);
-}
-
-
-static inline bit BITN(const word w, int n) {
-    // n = 31..0
-    return INST_BIT(w, n) & 1;
-}
-
-static inline void reg32_write_now(Reg32_ *r, uint32_t v) {
-    word din = {0};
-    word out = {0};
-    word_from_u32(v, din);
-    // clk=0 准备；clk=1 提交
-    reg32_step(r, 1, din, out, 0);
-    reg32_step(r, 1, din, out, 1);
-}
-
-#define PASS(msg) do { printf("[PASS] %s\n", (msg)); } while (0)
-#define FAIL(msg) do { printf("[FAIL] %s\n", (msg)); return 1; } while (0)
+#define FAIL(msg) do { \
+    printf("[FAIL] %s\n", (msg)); \
+    _test_fail_count++; \
+    return 1; \
+} while (0)
 
 #define ASSERT_EQ_U32(name, actual, expected) do { \
-if ((uint32_t)(actual) != (uint32_t)(expected)) { \
-printf("[FAIL] %s: got=0x%08X (%u), expected=0x%08X (%u)\n", \
-(name), (uint32_t)(actual), (uint32_t)(actual), (uint32_t)(expected), (uint32_t)(expected)); \
-return 1; \
-} else { \
-printf("[PASS] %s\n", (name)); \
-} \
+    uint32_t _a = (uint32_t)(actual); \
+    uint32_t _e = (uint32_t)(expected); \
+    if (_a != _e) { \
+        printf("[FAIL] %s: got=0x%08X (%u), expected=0x%08X (%u)\n", \
+               (name), _a, _a, _e, _e); \
+        _test_fail_count++; \
+        return 1; \
+    } else { \
+        printf("[PASS] %s\n", (name)); \
+        _test_pass_count++; \
+    } \
 } while (0)
 
 #define ASSERT_EQ_BIT(name, actual, expected) do { \
-if (((actual)&1) != ((expected)&1)) { \
-printf("[FAIL] %s: got=%d, expected=%d\n", (name), (int)((actual)&1), (int)((expected)&1)); \
-return 1; \
-} else { \
-printf("[PASS] %s\n", (name)); \
-} \
+    int _a = ((actual) & 1); \
+    int _e = ((expected) & 1); \
+    if (_a != _e) { \
+        printf("[FAIL] %s: got=%d, expected=%d\n", (name), _a, _e); \
+        _test_fail_count++; \
+        return 1; \
+    } else { \
+        printf("[PASS] %s\n", (name)); \
+        _test_pass_count++; \
+    } \
 } while (0)
 
+#define ASSERT_EQ_U8(name, actual, expected) do { \
+    uint8_t _a = (uint8_t)(actual); \
+    uint8_t _e = (uint8_t)(expected); \
+    if (_a != _e) { \
+        printf("[FAIL] %s: got=0x%02X, expected=0x%02X\n", (name), _a, _e); \
+        _test_fail_count++; \
+        return 1; \
+    } else { \
+        printf("[PASS] %s\n", (name)); \
+        _test_pass_count++; \
+    } \
+} while (0)
+
+#define TEST_SUMMARY(suite_name) do { \
+    printf("\n========== %s ==========\n", (suite_name)); \
+    printf("  Passed: %d\n", _test_pass_count); \
+    printf("  Failed: %d\n", _test_fail_count); \
+    if (_test_fail_count == 0) \
+        printf("  Result: ALL PASSED\n"); \
+    else \
+        printf("  Result: SOME FAILED\n"); \
+    printf("====================================\n"); \
+} while (0)
+
+// ======================== Convenience Helpers ========================
+// These are guarded by include checks so common_test.h works for all tests.
+
+#ifdef SCCPU_PC__H
+static inline void read_pc_u32(Pc32_ *pc, uint32_t *out) {
+    *out = reg32_read_u32(&pc->reg32);
+}
+#endif
+
+#ifdef SCCPU_IF_ID__H
+static inline void read_ifid_instr_u32(If_id_regs *r, uint32_t *out) {
+    *out = reg32_read_u32(&r->instr);
+}
+
+static inline void read_ifid_pc4_u32(If_id_regs *r, uint32_t *out) {
+    *out = reg32_read_u32(&r->pc_plus4);
+}
+#endif
+
+#ifdef SCCPU_IM__H
+static inline void im_set_u32(Im_t *im, uint32_t index, uint32_t inst) {
+    word_from_u32(inst, im->im[index]);
+}
+#endif
+
+// Access bit n (31..0) from a word
+static inline bit BITN(const word w, int n) {
+    return INST_BIT(w, n) & 1;
+}
+
+// Print word as hex
+static inline void print_word_hex(const word w) {
+    printf("0x%08X", (unsigned)word_to_u32(w));
+}
+
+// ======================== Run Test Helper ========================
+// Usage: RUN_TEST(test_function_name);
+#define RUN_TEST(fn) do { \
+    int _rc = fn(); \
+    if (_rc) { \
+        printf("[SUITE] %s: FAILED\n", #fn); \
+        rc |= _rc; \
+    } \
+} while (0)
 
 #endif //SCCPU_COMMON_TEST_H

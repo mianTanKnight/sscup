@@ -1,36 +1,35 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.10)
 project(sccpu C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(sccpu main.c
-        includes/gate.h
-        includes/alu.h
-        includes/common.h
-        includes/dff.h
-        includes/reg.h
-        includes/mux.h
-        includes/pc.h
-        includes/isa.h
-        includes/decoder.h
-        includes/im.h
-        tests/test_decoder.c
-        includes/if_id.h
-        tests/test_if_id.c
-        includes/id_ex.h
-        tests/test_id_ex.c
-        includes/ex_mem.h
-        tests/test_ex_mem.c
-        tests/common_test.h
-        tests/test_parallelism_branch_feedback.c
-        includes/dm.h
-        tests/test_dm.c
-        includes/mem_wb.h
-        includes/wb.h
-        tests/test_mem_wb.c
-        tests/test_wb.c
-        includes/cpu_core.h
-        includes/utils.h
-        tests/test_dff_contract.c
-        tests/test_beq_forwarding.c
+# Main executable (placeholder - not built until demo is ready)
+# add_executable(sccpu main.c)
+# target_include_directories(sccpu PRIVATE includes)
+
+# ======================== Test Targets ========================
+# Each test builds as its own independent executable
+
+set(TEST_NAMES
+    test_gate
+    test_mux
+    test_alu
+    test_reg
+    test_pc
+    test_dff_contract
+    test_decoder
+    test_if_id
+    test_id_ex
+    test_ex_mem
+    test_mem_wb
+    test_wb
+    test_dm
+    test_parallelism_branch_feedback
+    test_beq_forwarding
 )
+
+foreach(TEST_NAME ${TEST_NAMES})
+    add_executable(${TEST_NAME} tests/${TEST_NAME}.c)
+    target_include_directories(${TEST_NAME} PRIVATE includes)
+    target_compile_options(${TEST_NAME} PRIVATE -Wall -Wextra -Wno-unused-function -Wno-unused-variable)
+endforeach()
